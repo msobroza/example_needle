@@ -5,9 +5,8 @@ Compared with :class:`~needle.indexing.pickle_store.PickleIndexStore`:
 * **Pros** — ``np.savez_compressed`` shrinks large float arrays well and the
   ``.npz`` container is a familiar, inspectable format.
 * **Cons** — embeddings are stored as a single NumPy *object* array and
-  payloads are pickled into the same archive, so ``allow_pickle=True`` is
-  required on load. That means the file is still Python-specific and unsafe
-  to read from untrusted sources, just like a plain pickle.
+  payloads are stored in the same archive, so ``allow_pickle=True`` is
+  required on load.
 
 Wrapping the embeddings in an object array (rather than stacking them) keeps
 the store robust for **ragged** multi-vector arrays, where each page may have

@@ -92,11 +92,6 @@ reloaded = PickleIndexStore().load("index.pkl")   # load() returns self
 print(len(reloaded))
 ```
 
-!!! warning "Pickle security caveat"
-    Pickle is Python-specific and **unsafe to load from untrusted sources** — a
-    crafted pickle can execute arbitrary code on `load`. Only load index files you
-    produced or otherwise trust.
-
 ### `NumpyIndexStore`
 
 Persists embeddings and payloads inside a single `.npz` archive. Compared with
@@ -105,9 +100,7 @@ Persists embeddings and payloads inside a single `.npz` archive. Compared with
 * **Pros** — `np.savez_compressed` shrinks large float arrays well, and `.npz` is
   a familiar, inspectable container.
 * **Cons** — embeddings are stored as a single NumPy *object* array and payloads
-  are pickled into the same archive, so `allow_pickle=True` is required on load.
-  That means the file is still Python-specific and **unsafe to read from untrusted
-  sources**, just like a plain pickle.
+  are stored in the same archive, so `allow_pickle=True` is required on load.
 
 Embeddings are wrapped in a 1-D `dtype=object` array (rather than stacked) so the
 store stays robust for **ragged** multi-vector arrays, where each page may have a

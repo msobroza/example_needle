@@ -21,8 +21,5 @@ or mitigation timeline after triage.
 
 - This project loads third-party model weights when a real retriever backend is
   used. Only load models from sources you trust.
-- Indexes are persisted with `pickle`. **Do not load index files from untrusted
-  sources** — unpickling arbitrary data can execute code. The `NumpyIndexStore`
-  has the same caveat (`allow_pickle=True`).
 
 [advisories]: https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability

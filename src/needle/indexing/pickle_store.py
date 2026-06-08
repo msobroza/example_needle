@@ -24,8 +24,6 @@ class PickleIndexStore(BaseIndexStore):
     Pickle preserves arbitrary Python objects (including ragged lists of
     multi-vector arrays and rich payload values), which keeps this adapter
     drop-in compatible with the retrievers' ``save_index`` / ``load_index``.
-    The trade-off is the usual one: pickle is Python-specific and unsafe to
-    load from untrusted sources.
     """
 
     def save(self, path: PathLike) -> None:
