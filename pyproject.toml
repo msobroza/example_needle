@@ -1,0 +1,119 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "example-needle"
+version = "0.1.0"
+description = "Page-level multimodal document retrievers (multi-format, multi-model) with a clean conversational-core domain."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "example_needle authors" },
+]
+keywords = [
+    "retrieval",
+    "rag",
+    "colpali",
+    "colqwen",
+    "multimodal",
+    "late-interaction",
+    "document-ai",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+dependencies = [
+    "numpy>=1.23",
+    "pillow>=9.0",
+    "tqdm>=4.60",
+]
+
+[project.urls]
+Homepage = "https://github.com/msobroza/example_needle"
+Repository = "https://github.com/msobroza/example_needle"
+Issues = "https://github.com/msobroza/example_needle/issues"
+
+[project.optional-dependencies]
+# Heavy model backends — late-interaction / dense visual embedders.
+torch = ["torch>=2.1"]
+retrieval = [
+    "torch>=2.1",
+    "colpali-engine>=0.3",
+    "transformers>=4.44",
+]
+# Rasterising real PDFs / office documents to page images.
+pdf = ["pymupdf>=1.23"]
+# Notebook visualisation (similarity maps).
+viz = [
+    "matplotlib>=3.6",
+    "ipython>=8.0",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.4",
+    "black>=24.0",
+    "mypy>=1.8",
+]
+
+[project.scripts]
+needle = "needle.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"conversational_core" = ["py.typed"]
+"needle" = ["py.typed"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "torch: tests that require a working PyTorch installation",
+    "slow: slow tests (model downloads, large fixtures)",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B"]
+ignore = [
+    "B008",  # function call in default argument (IMAGE_EXTRACTORS default)
+    "UP007", # keep Union/Optional readability in domain models
+    "UP045", # keep Optional[...] readability in domain models
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
+# The page_retrievers module is published verbatim; keep its import block as-is.
+"src/needle/retrieval/page_retrievers.py" = ["I001"]
+
+[tool.black]
+line-length = 88
+target-version = ["py310"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_unused_ignores = false
+namespace_packages = true
+mypy_path = "src"

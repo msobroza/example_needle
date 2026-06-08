@@ -1,0 +1,55 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+
+# Indexes & model artifacts produced at runtime
+*.pkl
+index.pkl
+indexes/
+*.safetensors
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
