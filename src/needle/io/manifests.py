@@ -5,7 +5,7 @@ count and arbitrary metadata); an :class:`IndexManifest` is an ordered,
 JSON-round-trippable collection of such entries plus a creation timestamp.
 
 Formats are stored as their plain string value (e.g. ``"pdf"``), matching
-:class:`conversational_core.domain.types.DocumentExtension`, which subclasses
+:class:`needle_core.domain.types.DocumentExtension`, which subclasses
 ``str`` and serialises to its value without custom plumbing.
 """
 
@@ -28,7 +28,7 @@ class ManifestEntry:
     """A single indexed document.
 
     ``format`` holds the document extension as a plain string value, e.g.
-    ``"pdf"`` (see :class:`~conversational_core.domain.types.DocumentExtension`).
+    ``"pdf"`` (see :class:`~needle_core.domain.types.DocumentExtension`).
     """
 
     file: str

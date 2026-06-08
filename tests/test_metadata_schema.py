@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from conversational_core.domain.metadata.schema import MetadataField, MetadataSchema
+from needle_core.domain.metadata.schema import MetadataField, MetadataSchema
 
 
 def _schema() -> MetadataSchema:

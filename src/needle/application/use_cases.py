@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from conversational_core.domain.interaction.query import Query
-from conversational_core.domain.ports.retriever import RetrieverPort
+from needle_core.domain.interaction.query import Query
+from needle_core.domain.ports.retriever import RetrieverPort
 
 from ..retrieval.data import InputDocument
 from .dto import IndexRequest, IndexResult, SearchRequest, SearchResult

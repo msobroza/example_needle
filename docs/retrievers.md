@@ -13,8 +13,8 @@ share the same `index()` / `search()` / persistence machinery and differ only in
 
 | Retriever | `model_name` default | `multi_vector` | `colpali_engine` model / processor |
 | --- | --- | --- | --- |
-| `ColPaliRetriever` | `/domino/datasets/ModelHub-model-huggingface-vidore/colpali/main/` | `True` | `ColPali` / `ColPaliProcessor` |
-| `ColQwen2Retriever` | `/domino/datasets/ModelHub-model-huggingface-vidore/colqwen2-v1.0-hf/main/` | `True` | `ColQwen2` / `ColQwen2Processor` |
+| `ColPaliRetriever` | `vidore/colpali-v1.2` | `True` | `ColPali` / `ColPaliProcessor` |
+| `ColQwen2Retriever` | `vidore/colqwen2-v1.0` | `True` | `ColQwen2` / `ColQwen2Processor` |
 | `TomoroColQwen3Retriever` | `TomoroAI/tomoro-colqwen3-embed-4b` | `True` | `ColQwen2` / `ColQwen2Processor` |
 | `ColModernVBertRetriever` | `ModernVBERT/colmodernvbert` | `True` | `ColModernVBert` / `ColModernVBertProcessor` |
 | `NomicDenseRetriever` | `nomic-ai/nomic-embed-multimodal-3b` | `False` | `BiIdefics3` / `BiIdefics3Processor` |

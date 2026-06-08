@@ -15,7 +15,6 @@ import pytest
 
 pytest.importorskip("torch")
 
-from conversational_core.domain.interaction.query import Query  # noqa: E402
 from needle.retrieval.data import InputDocument  # noqa: E402
 from needle.retrieval.extractors import IMAGE_EXTRACTORS  # noqa: E402
 from needle.retrieval.page_retrievers import (  # noqa: E402
@@ -29,6 +28,7 @@ from needle.retrieval.page_retrievers import (  # noqa: E402
     TomoroColQwen3Retriever,
 )
 from needle.testing import DummyEmbedderRetriever  # noqa: E402
+from needle_core.domain.interaction.query import Query  # noqa: E402
 
 pytestmark = pytest.mark.torch
 

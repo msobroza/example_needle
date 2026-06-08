@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from conversational_core.domain.ports.embedder import Embedder
+from needle_core.domain.ports.embedder import Embedder
 
 from .config import RetrieverConfig
 from .pipeline import RetrievalPipeline

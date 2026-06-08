@@ -106,12 +106,12 @@ cheap and the dependencies are only required for the formats that need them.
 
 ## Resolving extensions: `DocumentExtension`
 
-`conversational_core.domain.types.DocumentExtension` is a `str`-backed enum, so its
+`needle_core.domain.types.DocumentExtension` is a `str`-backed enum, so its
 members compare equal to their string value and work as dict keys (which is exactly
 how `IMAGE_EXTRACTORS` is keyed). Two constructors normalise inputs:
 
 ```python
-from conversational_core.domain.types import DocumentExtension
+from needle_core.domain.types import DocumentExtension
 
 DocumentExtension.from_string("PDF")     # DocumentExtension.PDF
 DocumentExtension.from_string(".pdf")    # leading dot stripped
@@ -143,7 +143,7 @@ from pathlib import Path
 
 from needle.retrieval.extractors import IMAGE_EXTRACTORS, PageToImageExtractor
 from needle.retrieval.page_retrievers import ColQwen2Retriever
-from conversational_core.domain.types import DocumentExtension
+from needle_core.domain.types import DocumentExtension
 
 
 class XlsxToImageExtractor(PageToImageExtractor):

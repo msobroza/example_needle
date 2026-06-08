@@ -24,7 +24,7 @@ There are two ergonomic ways to attach filters.
 become equality (`EQ`) filters; list/tuple/set values become `IN` filters.
 
 ```python
-from conversational_core.domain.interaction.query import Query
+from needle_core.domain.interaction.query import Query
 
 # language == "en"  AND  year in [2022, 2023]
 query = Query.of(
@@ -41,8 +41,8 @@ calls and choose the operator explicitly. It accepts a `FilterOperator` or its
 string value.
 
 ```python
-from conversational_core.domain.interaction.query import Query
-from conversational_core.domain.metadata.filter_spec import FilterOperator
+from needle_core.domain.interaction.query import Query
+from needle_core.domain.metadata.filter_spec import FilterOperator
 
 query = (
     Query.of("operating margin by segment")
@@ -55,7 +55,7 @@ query = (
 
 ## The `FilterOperator` enum
 
-`conversational_core.domain.metadata.filter_spec.FilterOperator` defines the
+`needle_core.domain.metadata.filter_spec.FilterOperator` defines the
 supported comparisons:
 
 | Member | Value | Meaning |
@@ -82,7 +82,7 @@ AND)** of `FieldFilter` predicates. A `FieldFilter` is a frozen
 `(field, operator, value)` triple:
 
 ```python
-from conversational_core.domain.metadata.filter_spec import (
+from needle_core.domain.metadata.filter_spec import (
     FieldFilter, FilterOperator, MetadataFilterSpec,
 )
 
@@ -109,7 +109,7 @@ The operator keys come from `OPERATOR_TO_BACKEND`
 (`EQ → "$eq"`, `GTE → "$gte"`, `IN → "$in"`, …).
 
 ```python
-from conversational_core.domain.metadata.backend_filter_adapters import (
+from needle_core.domain.metadata.backend_filter_adapters import (
     MultiFieldFilterAdapter,
 )
 
@@ -168,8 +168,8 @@ set to `-inf` (so they can never enter the top-*k*) and their normalised score t
 ```python
 from needle.retrieval.data import InputDocument
 from needle.testing import DummyEmbedderRetriever
-from conversational_core.domain.interaction.query import Query
-from conversational_core.domain.metadata.filter_spec import FilterOperator
+from needle_core.domain.interaction.query import Query
+from needle_core.domain.metadata.filter_spec import FilterOperator
 
 retriever = DummyEmbedderRetriever(index_path="demo.pkl")
 retriever.index([

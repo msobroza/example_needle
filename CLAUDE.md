@@ -13,7 +13,7 @@ plus structured metadata filters.
 
 Two packages live under `src/`:
 
-- **`conversational_core`** — the domain layer. Pure Python, **no torch**.
+- **`needle_core`** — the domain layer. Pure Python, **no torch**.
   Documents, queries, and the metadata-filter model live here.
 - **`needle`** — the retrieval layer. Depends on PyTorch, imported **lazily**
   (only when an actual retriever is touched).
@@ -23,7 +23,7 @@ The centerpiece is `src/needle/retrieval/page_retrievers.py`:
 
 ### Hard rules
 
-1. **Never import `torch` (or model backends) from `conversational_core`.** The
+1. **Never import `torch` (or model backends) from `needle_core`.** The
    domain must stay importable without a heavy ML stack.
 2. **Keep `import needle` cheap.** Heavy imports go inside methods or behind the
    lazy `__getattr__` shims in `needle/__init__.py` and

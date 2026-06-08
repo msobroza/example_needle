@@ -15,8 +15,8 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Union
 
-from conversational_core.domain.exceptions import UnsupportedExtensionError
-from conversational_core.domain.types import DocumentExtension
+from needle_core.domain.exceptions import UnsupportedExtensionError
+from needle_core.domain.types import DocumentExtension
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
     from PIL.Image import Image

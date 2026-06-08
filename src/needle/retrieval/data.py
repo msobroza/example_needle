@@ -1,6 +1,6 @@
 """Data carriers exchanged with the page retrievers.
 
-These types glue the :mod:`conversational_core` domain (documents, queries)
+These types glue the :mod:`needle_core` domain (documents, queries)
 to the retriever I/O:
 
 * :class:`InputDocument` — what you hand to ``retriever.index(...)``.
@@ -15,13 +15,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, NamedTuple, Optional, Union
 
-from conversational_core.domain.document.document import (
+from needle_core.domain.document.document import (
     Document,
     DocumentPage,
     DocumentVersion,
 )
-from conversational_core.domain.interaction.query import Query
-from conversational_core.domain.types import DocumentExtension
+from needle_core.domain.interaction.query import Query
+from needle_core.domain.types import DocumentExtension
 
 
 @dataclass

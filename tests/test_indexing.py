@@ -9,7 +9,6 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from conversational_core.domain.ports.index_store import IndexStorePort
 from needle.exceptions import IndexStoreError
 from needle.indexing import (
     BaseIndexStore,
@@ -17,6 +16,7 @@ from needle.indexing import (
     NumpyIndexStore,
     PickleIndexStore,
 )
+from needle_core.domain.ports.index_store import IndexStorePort
 
 ALL_STORES = [InMemoryIndexStore, PickleIndexStore, NumpyIndexStore]
 

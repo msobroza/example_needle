@@ -1,10 +1,10 @@
-"""Tests for :mod:`conversational_core.domain.types`."""
+"""Tests for :mod:`needle_core.domain.types`."""
 
 from __future__ import annotations
 
 import pytest
 
-from conversational_core.domain.types import DocumentExtension
+from needle_core.domain.types import DocumentExtension
 
 
 def test_from_string_variants():

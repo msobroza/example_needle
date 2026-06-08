@@ -14,7 +14,7 @@ from typing import Any
 
 import numpy as np
 
-from conversational_core.domain.ports.index_store import IndexStorePort
+from needle_core.domain.ports.index_store import IndexStorePort
 
 from ..types import Embedding, Payload
 

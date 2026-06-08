@@ -2,7 +2,7 @@
 * @msobroza
 
 # Domain layer
-/src/conversational_core/ @msobroza
+/src/needle_core/ @msobroza
 
 # Retrieval layer
 /src/needle/ @msobroza

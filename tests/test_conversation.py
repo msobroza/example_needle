@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from conversational_core.domain.interaction.conversation import Conversation, Turn
-from conversational_core.domain.interaction.query import Query
-from conversational_core.domain.interaction.response import RetrievalResponse
+from needle_core.domain.interaction.conversation import Conversation, Turn
+from needle_core.domain.interaction.query import Query
+from needle_core.domain.interaction.response import RetrievalResponse
 
 
 def test_empty_conversation() -> None:

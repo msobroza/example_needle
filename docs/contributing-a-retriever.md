@@ -179,7 +179,7 @@ Drive the full index → save → load → search loop, exactly like the built-i
 
 ```python
 from needle.retrieval.data import InputDocument
-from conversational_core.domain.interaction.query import Query
+from needle_core.domain.interaction.query import Query
 
 retriever = MyRetriever(index_path="index.pkl")
 retriever.index([InputDocument.from_path("page.png", metadata={"year": 2024})])

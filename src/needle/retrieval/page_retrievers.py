@@ -13,11 +13,11 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from conversational_core.domain.interaction.query import Query
-from conversational_core.domain.metadata.backend_filter_adapters import (
+from needle_core.domain.interaction.query import Query
+from needle_core.domain.metadata.backend_filter_adapters import (
     MultiFieldFilterAdapter,
 )
-from conversational_core.domain.types import DocumentExtension
+from needle_core.domain.types import DocumentExtension
 from tqdm import tqdm
 
 from .data import InputDocument, PageAnnotationResult, PreannotationPageResult
@@ -302,7 +302,7 @@ class ColPaliRetriever(MultimodalEmbedderRetriever):
 
     def __init__(
         self,
-        model_name: str = "/domino/datasets/ModelHub-model-huggingface-vidore/colpali/main/",  # noqa: E501
+        model_name: str = "vidore/colpali-v1.2",
         **kwargs,
     ):
         self.model_name = model_name
@@ -335,7 +335,7 @@ class ColQwen2Retriever(MultimodalEmbedderRetriever):
 
     def __init__(
         self,
-        model_name: str = "/domino/datasets/ModelHub-model-huggingface-vidore/colqwen2-v1.0-hf/main/",  # noqa: E501
+        model_name: str = "vidore/colqwen2-v1.0",
         **kwargs,
     ):
         self.model_name = model_name

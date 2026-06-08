@@ -138,11 +138,11 @@ a warning, mirroring the concrete retrievers.
 embedding, min-max normalises the scores, applies the query's metadata filter as a
 boolean mask, and returns the surviving top-*k* pages as
 `PreannotationPageResult` objects. Searching an empty index raises
-`conversational_core.domain.exceptions.EmptyIndexError`.
+`needle_core.domain.exceptions.EmptyIndexError`.
 
 ```python
-from conversational_core.domain.interaction.query import Query
-from conversational_core.domain.metadata.filter_spec import FilterOperator
+from needle_core.domain.interaction.query import Query
+from needle_core.domain.metadata.filter_spec import FilterOperator
 
 query = (
     Query.of("revenue breakdown")

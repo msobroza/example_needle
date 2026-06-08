@@ -9,11 +9,11 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from conversational_core.domain.document.discovery import (
+from needle.io.manifests import IndexManifest, ManifestEntry
+from needle_core.domain.document.discovery import (
     count_by_extension,
     discover_documents,
 )
-from needle.io.manifests import IndexManifest, ManifestEntry
 
 
 def main() -> int:

@@ -5,8 +5,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from conversational_core.domain.ports.embedder import Embedder
 from needle.embedders import BaseEmbedder, DeterministicEmbedder
+from needle_core.domain.ports.embedder import Embedder
 
 
 @pytest.fixture

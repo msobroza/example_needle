@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from conversational_core.domain.ports.retriever import RetrieverPort
+from needle_core.domain.ports.retriever import RetrieverPort
 
 from ..dto import IndexRequest, IndexResult
 

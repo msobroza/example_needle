@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from conversational_core.domain.metadata.filter_spec import (
+from needle_core.domain.metadata.filter_spec import (
     FieldFilter,
     FilterOperator,
     MetadataFilterSpec,

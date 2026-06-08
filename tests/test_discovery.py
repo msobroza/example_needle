@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from conversational_core.domain.document.checksum import sha256_file
-from conversational_core.domain.document.discovery import (
+from needle_core.domain.document.checksum import sha256_file
+from needle_core.domain.document.discovery import (
     count_by_extension,
     discover_documents,
 )
-from conversational_core.domain.document.document import Document, DocumentVersion
+from needle_core.domain.document.document import Document, DocumentVersion
 
 
 def _populate(root: Path) -> None:

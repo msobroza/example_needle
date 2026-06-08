@@ -12,9 +12,9 @@ import logging
 import tempfile
 from pathlib import Path
 
-from conversational_core.domain.interaction.query import Query
 from needle.retrieval.data import InputDocument
 from needle.testing import DummyEmbedderRetriever
+from needle_core.domain.interaction.query import Query
 
 
 def make_page(path: Path, text: str, color: str) -> Path:

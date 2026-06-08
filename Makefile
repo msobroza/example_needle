@@ -27,7 +27,7 @@ test: ## Run the test suite
 	pytest
 
 cover: ## Run tests with coverage
-	pytest --cov=conversational_core --cov=needle --cov-report=term-missing
+	pytest --cov=needle_core --cov=needle --cov-report=term-missing
 
 build: ## Build sdist + wheel
 	python -m build

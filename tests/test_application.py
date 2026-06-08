@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import pytest
 
-from conversational_core.domain.interaction.query import Query
 from needle.application import (
     IndexingService,
     IndexRequest,
@@ -17,6 +16,7 @@ from needle.application import (
 from needle.application.errors import EmptyQueryError
 from needle.factory import build_pipeline
 from needle.retrieval.data import InputDocument
+from needle_core.domain.interaction.query import Query
 
 
 @pytest.fixture

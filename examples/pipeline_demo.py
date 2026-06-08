@@ -8,10 +8,10 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from conversational_core.domain.interaction.query import Query
 from needle.factory import build_pipeline
 from needle.indexing import PickleIndexStore
 from needle.retrieval.data import InputDocument
+from needle_core.domain.interaction.query import Query
 
 
 def make_page(path: Path, text: str, color: str) -> Path:

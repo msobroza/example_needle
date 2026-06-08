@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import pytest
 
-from conversational_core.domain.document.document import (
+from needle_core.domain.document.document import (
     Document,
     DocumentPage,
     DocumentVersion,
 )
-from conversational_core.domain.types import DocumentExtension
+from needle_core.domain.types import DocumentExtension
 
 
 def test_document_from_path_infers_extension_and_title():

@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from conversational_core.domain.interaction.query import Query
-from conversational_core.domain.types import DocumentExtension
 from needle.retrieval.data import (
     InputDocument,
     PageAnnotation,
     PageAnnotationResult,
     PreannotationPageResult,
 )
+from needle_core.domain.interaction.query import Query
+from needle_core.domain.types import DocumentExtension
 
 
 def test_input_document_from_path():

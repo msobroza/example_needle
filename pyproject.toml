@@ -74,7 +74,7 @@ needle = "needle.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-"conversational_core" = ["py.typed"]
+"needle_core" = ["py.typed"]
 "needle" = ["py.typed"]
 
 [tool.pytest.ini_options]

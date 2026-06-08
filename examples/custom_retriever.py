@@ -17,9 +17,9 @@ from pathlib import Path
 
 import numpy as np
 
-from conversational_core.domain.interaction.query import Query
 from needle.retrieval.data import InputDocument
 from needle.retrieval.page_retrievers import MultimodalEmbedderRetriever
+from needle_core.domain.interaction.query import Query
 
 _COLOR_WORDS: dict[str, tuple[float, float, float]] = {
     "red": (1.0, 0.0, 0.0),

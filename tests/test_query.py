@@ -1,11 +1,11 @@
-"""Tests for :class:`conversational_core.domain.interaction.query.Query`."""
+"""Tests for :class:`needle_core.domain.interaction.query.Query`."""
 
 from __future__ import annotations
 
 import pytest
 
-from conversational_core.domain.interaction.query import Query
-from conversational_core.domain.metadata.filter_spec import (
+from needle_core.domain.interaction.query import Query
+from needle_core.domain.metadata.filter_spec import (
     FilterOperator,
     MetadataFilterSpec,
 )

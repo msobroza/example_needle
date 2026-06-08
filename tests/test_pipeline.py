@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import pytest
 
-from conversational_core.domain.exceptions import EmptyIndexError
-from conversational_core.domain.interaction.query import Query
 from needle.embedders import DeterministicEmbedder
 from needle.factory import build_pipeline
 from needle.indexing import PickleIndexStore
 from needle.retrieval.data import InputDocument
+from needle_core.domain.exceptions import EmptyIndexError
+from needle_core.domain.interaction.query import Query
 
 
 @pytest.fixture

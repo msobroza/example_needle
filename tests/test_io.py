@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from conversational_core.domain.types import DocumentExtension
 from needle.io.manifests import IndexManifest, ManifestEntry
 from needle.io.paths import ensure_dir, human_size, iter_files
+from needle_core.domain.types import DocumentExtension
 
 
 # ---------------------------------------------------------------------------

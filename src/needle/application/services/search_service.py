@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from conversational_core.domain.ports.retriever import RetrieverPort
+from needle_core.domain.ports.retriever import RetrieverPort
 
 from ...metrics.timing import Timer
 from ..dto import SearchRequest, SearchResult

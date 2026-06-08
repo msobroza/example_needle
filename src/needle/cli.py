@@ -81,7 +81,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 0
 
     if args.command == "search":
-        from conversational_core.domain.interaction.query import Query
+        from needle_core.domain.interaction.query import Query
 
         results = retriever.search(Query(query_text=args.query), top_k=args.top_k)
         retriever.show([r.to_annotation_result() for r in results])

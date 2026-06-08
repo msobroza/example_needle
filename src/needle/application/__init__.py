@@ -1,7 +1,7 @@
 """Application layer: use-cases that orchestrate the retrieval components.
 
 Services here depend on the abstract
-:class:`~conversational_core.domain.ports.retriever.RetrieverPort`, so they work
+:class:`~needle_core.domain.ports.retriever.RetrieverPort`, so they work
 with either a concrete model-backed retriever or a torch-free
 :class:`~needle.pipeline.RetrievalPipeline`.
 """

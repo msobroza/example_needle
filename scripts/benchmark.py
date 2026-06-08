@@ -36,8 +36,8 @@ def main() -> int:
     parser.add_argument("--multi-vector", action="store_true", default=True)
     args = parser.parse_args()
 
-    from conversational_core.domain.interaction.query import Query
     from needle.testing import DummyEmbedderRetriever
+    from needle_core.domain.interaction.query import Query
 
     workdir = Path(tempfile.mkdtemp(prefix="needle-bench-"))
     documents = synth_pages(workdir, args.pages)

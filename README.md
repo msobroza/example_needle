@@ -24,7 +24,7 @@ page the way a human does.
 
 | Package | Responsibility | Heavy deps? |
 |---|---|---|
-| **`conversational_core`** | Framework-agnostic *domain*: `Document`, `DocumentVersion`, `DocumentPage`, `Query`, and the metadata-filter model. | No — pure Python. |
+| **`needle_core`** | Framework-agnostic *domain*: `Document`, `DocumentVersion`, `DocumentPage`, `Query`, and the metadata-filter model. | No — pure Python. |
 | **`needle`** | The retrieval layer: page extractors, the `BasePageRetriever` hierarchy and concrete model backends. | Yes — PyTorch (loaded lazily). |
 
 Importing `needle` is cheap; PyTorch is only imported the first time you touch
@@ -46,7 +46,7 @@ The deterministic `DummyEmbedderRetriever` runs the **entire** index/search
 pipeline with no model weights — perfect for trying the API or for CI:
 
 ```python
-from conversational_core.domain.interaction.query import Query
+from needle_core.domain.interaction.query import Query
 from needle.retrieval.data import InputDocument
 from needle.testing import DummyEmbedderRetriever
 
@@ -134,21 +134,21 @@ fully torch-free when paired with the deterministic embedder:
 from needle.factory import build_pipeline
 from needle.indexing import PickleIndexStore
 from needle.retrieval.data import InputDocument
-from conversational_core.domain.interaction.query import Query
+from needle_core.domain.interaction.query import Query
 
 pipeline = build_pipeline(store=PickleIndexStore())      # DeterministicEmbedder by default
 pipeline.index([InputDocument.from_path("report.png", metadata={"year": 2024})])
 hits = pipeline.search(Query.of("revenue").with_filter("year", 2024, "gte"))
 ```
 
-Swap in any [`Embedder`](src/conversational_core/domain/ports/embedder.py),
+Swap in any [`Embedder`](src/needle_core/domain/ports/embedder.py),
 [`IndexStore`](src/needle/indexing) or
 [`ScoringStrategy`](src/needle/scoring) — they are independent ports/adapters.
 
 ## Architecture at a glance
 
 ```
-src/conversational_core/   # domain layer (pure Python, no torch)
+src/needle_core/   # domain layer (pure Python, no torch)
   domain/document/         #   Document / DocumentVersion / DocumentPage, discovery, checksum
   domain/interaction/      #   Query, Conversation, RetrievalResponse
   domain/metadata/         #   filter spec + backend adapters + schema

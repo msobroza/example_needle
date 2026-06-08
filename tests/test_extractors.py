@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import pytest
 
-from conversational_core.domain.exceptions import UnsupportedExtensionError
-from conversational_core.domain.types import DocumentExtension
 from needle.retrieval.extractors import (
     IMAGE_EXTRACTORS,
     ImageFileExtractor,
@@ -13,6 +11,8 @@ from needle.retrieval.extractors import (
     PdfToImageExtractor,
     get_extractor,
 )
+from needle_core.domain.exceptions import UnsupportedExtensionError
+from needle_core.domain.types import DocumentExtension
 
 
 def test_image_file_extractor_single_page(png_factory):

@@ -1,4 +1,4 @@
-"""conversational_core — domain model for conversational document retrieval.
+"""needle_core — domain model for conversational document retrieval.
 
 This package holds the framework-agnostic, dependency-light *domain* layer:
 documents, queries, metadata filters and the value types shared across the

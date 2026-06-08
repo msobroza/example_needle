@@ -26,7 +26,7 @@ Two embedding regimes are supported:
 
 The project ships two packages:
 
-* **`conversational_core`** — a dependency-light domain layer (`Document`,
+* **`needle_core`** — a dependency-light domain layer (`Document`,
   `DocumentVersion`, `DocumentPage`, `Query`, metadata filters). No torch.
 * **`needle`** — the retrieval layer (extractors, retrievers, registry). Pulls in
   torch, but only when a retriever is actually touched.
@@ -52,7 +52,7 @@ so it runs with **no model weights, no network and no GPU**.
 ```python
 from needle.retrieval.data import InputDocument
 from needle.testing import DummyEmbedderRetriever
-from conversational_core.domain.interaction.query import Query
+from needle_core.domain.interaction.query import Query
 
 retriever = DummyEmbedderRetriever(index_path="demo.pkl")        # no weights needed
 docs = [InputDocument.from_path("report.png", metadata={"year": 2023})]

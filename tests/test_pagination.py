@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from conversational_core.domain.pagination import Page, PageRequest
+from needle_core.domain.pagination import Page, PageRequest
 
 
 def test_defaults() -> None:

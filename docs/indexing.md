@@ -8,7 +8,7 @@ parallel lists indexed positionally, so the `i`-th embedding belongs with the
 `i`-th payload — and differs only in how (and whether) it persists to disk.
 
 All three concrete stores live in `needle.indexing` and implement
-`conversational_core.domain.ports.index_store.IndexStorePort`:
+`needle_core.domain.ports.index_store.IndexStorePort`:
 
 ```python
 from needle.indexing import (

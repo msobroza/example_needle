@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from conversational_core.domain.geometry import BoundingBox
+from needle_core.domain.geometry import BoundingBox
 
 
 def test_dimensions_and_area() -> None:

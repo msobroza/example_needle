@@ -3,7 +3,7 @@
 Two responsibilities live here:
 
 * :func:`matches_filter` — evaluate a single Mongo-style criterion produced by
-  :class:`conversational_core.domain.metadata.backend_filter_adapters.MultiFieldFilterAdapter`
+  :class:`needle_core.domain.metadata.backend_filter_adapters.MultiFieldFilterAdapter`
   against an actual metadata value. This is the read side of the filter
   contract; the adapter is the write side.
 * :class:`SimilarityMapVisualizer` — render a late-interaction similarity

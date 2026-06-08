@@ -7,7 +7,7 @@ from dataclasses import FrozenInstanceError
 
 import pytest
 
-from conversational_core.domain.identifiers import DocumentId, QueryId, VersionId
+from needle_core.domain.identifiers import DocumentId, QueryId, VersionId
 
 
 def test_str_returns_raw_value() -> None:

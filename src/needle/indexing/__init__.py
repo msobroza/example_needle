@@ -1,7 +1,7 @@
 """Index-store adapters for ``needle``.
 
 Concrete implementations of
-:class:`conversational_core.domain.ports.index_store.IndexStorePort`,
+:class:`needle_core.domain.ports.index_store.IndexStorePort`,
 each storing ``(embedding, payload)`` pairs with a different persistence
 strategy:
 

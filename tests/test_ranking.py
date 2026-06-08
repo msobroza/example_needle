@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from conversational_core.domain.ranking import RankedPage, Ranking, Score
+from needle_core.domain.ranking import RankedPage, Ranking, Score
 
 
 def test_score_value_prefers_normalized() -> None:

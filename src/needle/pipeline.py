@@ -1,7 +1,7 @@
 """A composable, torch-free retrieval pipeline.
 
 ``RetrievalPipeline`` wires the pluggable building blocks of this package —
-an :class:`~conversational_core.domain.ports.embedder.Embedder`, an index store,
+an :class:`~needle_core.domain.ports.embedder.Embedder`, an index store,
 a scoring strategy and the page extractors — into the same index/search flow
 implemented by the concrete retrievers, but assembled from parts you choose.
 
@@ -18,13 +18,13 @@ from typing import Optional
 
 import numpy as np
 
-from conversational_core.domain.exceptions import EmptyIndexError
-from conversational_core.domain.interaction.query import Query
-from conversational_core.domain.metadata.backend_filter_adapters import (
+from needle_core.domain.exceptions import EmptyIndexError
+from needle_core.domain.interaction.query import Query
+from needle_core.domain.metadata.backend_filter_adapters import (
     MultiFieldFilterAdapter,
 )
-from conversational_core.domain.ports.embedder import Embedder
-from conversational_core.domain.types import DocumentExtension
+from needle_core.domain.ports.embedder import Embedder
+from needle_core.domain.types import DocumentExtension
 
 from .constants import DEFAULT_BATCH_SIZE, DEFAULT_DPI, DEFAULT_TOP_K
 from .indexing import InMemoryIndexStore

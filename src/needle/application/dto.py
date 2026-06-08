@@ -6,7 +6,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Optional
 
-from conversational_core.domain.interaction.query import Query
+from needle_core.domain.interaction.query import Query
 
 from ..retrieval.data import InputDocument, PreannotationPageResult
 

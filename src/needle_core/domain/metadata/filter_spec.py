@@ -2,7 +2,7 @@
 
 A :class:`MetadataFilterSpec` is an ordered conjunction (logical AND) of
 :class:`FieldFilter` predicates. It is deliberately decoupled from any
-storage backend; :mod:`conversational_core.domain.metadata.backend_filter_adapters`
+storage backend; :mod:`needle_core.domain.metadata.backend_filter_adapters`
 translates a spec into a concrete backend representation.
 """
 

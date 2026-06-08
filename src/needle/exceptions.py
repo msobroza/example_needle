@@ -1,6 +1,6 @@
 """Exceptions raised by the ``needle`` infrastructure layer.
 
-These complement :mod:`conversational_core.domain.exceptions` (domain errors):
+These complement :mod:`needle_core.domain.exceptions` (domain errors):
 anything here is about *infrastructure* — stores, embedders, configuration.
 """
 

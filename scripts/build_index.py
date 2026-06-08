@@ -18,8 +18,8 @@ import argparse
 import logging
 from pathlib import Path
 
-from conversational_core.domain.types import DocumentExtension
 from needle.retrieval.data import InputDocument
+from needle_core.domain.types import DocumentExtension
 
 _SUPPORTED_SUFFIXES = {f".{ext.value}" for ext in DocumentExtension}
 

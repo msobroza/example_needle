@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from conversational_core.domain.document.checksum import (
+from needle_core.domain.document.checksum import (
     sha256_bytes,
     sha256_file,
     short_checksum,

@@ -23,7 +23,7 @@ pip install -e ".[retrieval]"
 
 ```
 src/
-  conversational_core/   # dependency-light domain (no torch)
+  needle_core/   # dependency-light domain (no torch)
   needle/                # retrieval layer (torch, loaded lazily)
 tests/                   # pytest suite (torch tests skip if torch is absent)
 docs/                    # markdown documentation
@@ -47,7 +47,7 @@ locally first.
 
 - **Style**: `black` (line length 88) and `ruff` enforce formatting + linting.
 - **Typing**: public APIs are type-annotated; `mypy` runs in non-strict mode.
-- **Domain stays light**: `conversational_core` must not import `torch`,
+- **Domain stays light**: `needle_core` must not import `torch`,
   `transformers`, or any model backend. Heavy imports live in `needle` and are
   done lazily inside methods so `import needle` stays cheap.
 - **Tests**: torch-dependent tests start with `pytest.importorskip("torch")`

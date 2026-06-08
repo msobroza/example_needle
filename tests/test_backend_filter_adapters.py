@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import pytest
 
-from conversational_core.domain.metadata.backend_filter_adapters import (
+from needle_core.domain.metadata.backend_filter_adapters import (
     BackendFilterAdapter,
     MultiFieldFilterAdapter,
 )
-from conversational_core.domain.metadata.filter_spec import (
+from needle_core.domain.metadata.filter_spec import (
     FilterOperator,
     MetadataFilterSpec,
 )

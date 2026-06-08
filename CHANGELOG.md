@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `conversational_core` domain package:
+- `needle_core` domain package:
   - `DocumentExtension` enum with format detection (`from_path`, `from_string`).
   - `Document`, `DocumentVersion`, `DocumentPage` aggregate.
   - `Query` value object with structured metadata filters.

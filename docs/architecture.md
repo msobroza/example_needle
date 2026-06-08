@@ -1,11 +1,11 @@
 # Architecture
 
 `example_needle` is split into two packages with a strict dependency direction:
-`needle` depends on `conversational_core`, never the other way round.
+`needle` depends on `needle_core`, never the other way round.
 
 ## Two-package design
 
-### `conversational_core` — the domain layer
+### `needle_core` — the domain layer
 
 A dependency-light domain that models documents, queries and metadata filters.
 It deliberately avoids torch, transformers, ORMs and pydantic so it can be
@@ -13,11 +13,11 @@ imported anywhere (CLIs, services, tests) without a heavy ML stack.
 
 | Module | Key types |
 | --- | --- |
-| `conversational_core.domain.types` | `DocumentExtension` |
-| `conversational_core.domain.document.document` | `Document`, `DocumentVersion`, `DocumentPage` |
-| `conversational_core.domain.interaction.query` | `Query` |
-| `conversational_core.domain.metadata.filter_spec` | `FilterOperator`, `FieldFilter`, `MetadataFilterSpec` |
-| `conversational_core.domain.metadata.backend_filter_adapters` | `BackendFilterAdapter`, `MultiFieldFilterAdapter`, `OPERATOR_TO_BACKEND` |
+| `needle_core.domain.types` | `DocumentExtension` |
+| `needle_core.domain.document.document` | `Document`, `DocumentVersion`, `DocumentPage` |
+| `needle_core.domain.interaction.query` | `Query` |
+| `needle_core.domain.metadata.filter_spec` | `FilterOperator`, `FieldFilter`, `MetadataFilterSpec` |
+| `needle_core.domain.metadata.backend_filter_adapters` | `BackendFilterAdapter`, `MultiFieldFilterAdapter`, `OPERATOR_TO_BACKEND` |
 
 * A **`Document`** is the logical entity ("the Q3 earnings report"), identified by
   a `document_id` and a `document_ext` (a `DocumentExtension`).
