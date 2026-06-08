@@ -124,6 +124,48 @@ class MyRetriever(MultimodalEmbedderRetriever):
 See [`docs/contributing-a-retriever.md`](docs/contributing-a-retriever.md) and
 the worked example in [`src/needle/testing.py`](src/needle/testing.py).
 
+## Composable pipeline
+
+Prefer assembling the pieces yourself? `RetrievalPipeline` wires an embedder, an
+index store and a scoring strategy into the same index/search flow — and it is
+fully torch-free when paired with the deterministic embedder:
+
+```python
+from needle.factory import build_pipeline
+from needle.indexing import PickleIndexStore
+from needle.retrieval.data import InputDocument
+from conversational_core.domain.interaction.query import Query
+
+pipeline = build_pipeline(store=PickleIndexStore())      # DeterministicEmbedder by default
+pipeline.index([InputDocument.from_path("report.png", metadata={"year": 2024})])
+hits = pipeline.search(Query.of("revenue").with_filter("year", 2024, "gte"))
+```
+
+Swap in any [`Embedder`](src/conversational_core/domain/ports/embedder.py),
+[`IndexStore`](src/needle/indexing) or
+[`ScoringStrategy`](src/needle/scoring) — they are independent ports/adapters.
+
+## Architecture at a glance
+
+```
+src/conversational_core/   # domain layer (pure Python, no torch)
+  domain/document/         #   Document / DocumentVersion / DocumentPage, discovery, checksum
+  domain/interaction/      #   Query, Conversation, RetrievalResponse
+  domain/metadata/         #   filter spec + backend adapters + schema
+  domain/ports/            #   hexagonal ports: Embedder, IndexStore, PageRenderer, Retriever
+  domain/                  #   ranking, pagination, geometry, events, identifiers
+src/needle/                # infrastructure + application (torch loaded lazily)
+  retrieval/               #   the page retrievers, extractors, data carriers
+  embedders/ scoring/      #   pluggable embedders + MaxSim/cosine scorers
+  indexing/                #   in-memory / pickle / numpy index stores
+  metrics/ io/             #   recall@k, MRR, nDCG, manifests, timers
+  application/             #   IndexingService / SearchService / use-cases
+  pipeline.py factory.py   #   the composable RetrievalPipeline
+```
+
+See [`docs/architecture.md`](docs/architecture.md) and
+[`docs/domain-model.md`](docs/domain-model.md) for the full tour.
+
 ## Command line
 
 ```bash
@@ -136,9 +178,15 @@ needle search "revenue by region" --index index.pkl --top-k 5
 
 * [`docs/index.md`](docs/index.md) — start here
 * [`docs/architecture.md`](docs/architecture.md) — how the pieces fit together
+* [`docs/domain-model.md`](docs/domain-model.md) — the domain value objects + ports
 * [`docs/retrievers.md`](docs/retrievers.md) — the model backends
+* [`docs/pipeline.md`](docs/pipeline.md) — the composable pipeline
+* [`docs/indexing.md`](docs/indexing.md) — index stores
 * [`docs/filters.md`](docs/filters.md) — metadata filtering
 * [`docs/extractors.md`](docs/extractors.md) — turning files into page images
+* [`docs/metrics.md`](docs/metrics.md) — retrieval evaluation metrics
+* [`docs/configuration.md`](docs/configuration.md) — config + backends
+* [`docs/cli.md`](docs/cli.md) — the `needle` command line
 * [`docs/contributing-a-retriever.md`](docs/contributing-a-retriever.md)
 
 ## Development

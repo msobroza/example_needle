@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "example_needle: page-level multimodal document retrieval"
+abstract: >-
+  A library for indexing and searching documents at the page level using
+  multimodal (visual) embedders such as ColPali and ColQwen2, with a clean
+  conversational-core domain and pluggable retriever backends.
+type: software
+authors:
+  - name: "example_needle authors"
+version: 0.1.0
+license: Apache-2.0
+repository-code: "https://github.com/msobroza/example_needle"
+keywords:
+  - retrieval
+  - rag
+  - colpali
+  - multimodal
+  - late-interaction
+  - document-ai
