@@ -1,0 +1,1222 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Page-level multimodal document retrieval.">
+      
+      
+      
+      
+        <link rel="prev" href="../architecture/">
+      
+      
+        <link rel="next" href="../retrievers/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Domain model - example_needle</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#domain-model" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="example_needle" class="md-header__button md-logo" aria-label="example_needle" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            example_needle
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Domain model
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/msobroza/example_needle" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    msobroza/example_needle
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="example_needle" class="md-nav__button md-logo" aria-label="example_needle" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    example_needle
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/msobroza/example_needle" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    msobroza/example_needle
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Domain model
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Domain model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#documents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#discovery-and-checksums" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Discovery and checksums
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#queries-and-metadata-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Queries and metadata filters
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Queries and metadata filters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata-schema-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata schema validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#identifiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identifiers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ranking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ranking
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pagination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pagination
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#geometry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Geometry
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Events
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#responses-and-conversations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responses and conversations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hexagonal-ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hexagonal ports
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../retrievers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Retrievers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../indexing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Indexing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Filters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../extractors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extractors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing-a-retriever/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing a retriever
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#documents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#discovery-and-checksums" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Discovery and checksums
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#queries-and-metadata-filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Queries and metadata filters
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Queries and metadata filters">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#metadata-schema-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata schema validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#identifiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identifiers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ranking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ranking
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pagination" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pagination
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#geometry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Geometry
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Events
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#responses-and-conversations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Responses and conversations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hexagonal-ports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hexagonal ports
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="domain-model">Domain model<a class="headerlink" href="#domain-model" title="Permanent link">&para;</a></h1>
+<p><code>needle_core.domain</code> is the <strong>dependency-light domain layer</strong>. It models
+documents, queries, rankings and the surrounding value objects as plain
+dataclasses — no torch, transformers, ORMs or pydantic — so it can be imported
+anywhere, including environments without an ML stack. The retrieval layer
+(<code>needle</code>) depends on this package, never the other way round.</p>
+<pre class="mermaid"><code>flowchart TB
+    subgraph domain["needle_core.domain"]
+        DOCS["document&lt;br/&gt;Document · DocumentVersion · DocumentPage&lt;br/&gt;discovery · checksum"]
+        INTER["interaction&lt;br/&gt;Query · RetrievalResponse · Conversation/Turn"]
+        META["metadata&lt;br/&gt;FilterOperator · FieldFilter · MetadataFilterSpec · MetadataSchema"]
+        IDS["identifiers&lt;br/&gt;DocumentId · VersionId · QueryId"]
+        RANK["ranking&lt;br/&gt;Score · RankedPage · Ranking"]
+        PAGE["pagination&lt;br/&gt;PageRequest · Page"]
+        GEO["geometry&lt;br/&gt;BoundingBox"]
+        EVT["events&lt;br/&gt;DomainEvent · DocumentIndexed · QueryExecuted · IndexCleared"]
+    end
+    subgraph ports["domain.ports (hexagonal)"]
+        EMB["Embedder"]
+        IDX["IndexStorePort"]
+        PR["PageRenderer"]
+        RP["RetrieverPort"]
+    end
+    NEEDLE["needle (retrieval layer)"] -.implements.-&gt; ports
+    NEEDLE -.depends on.-&gt; domain</code></pre>
+<h2 id="documents">Documents<a class="headerlink" href="#documents" title="Permanent link">&para;</a></h2>
+<p>A <code>Document</code> is the <strong>logical</strong> entity ("the Q3 earnings report"); a
+<code>DocumentVersion</code> is a concrete on-disk materialisation of it; a <code>DocumentPage</code> is
+a single page within a version. They live in
+<code>needle_core.domain.document.document</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">needle_core.domain.document.document</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">Document</span><span class="p">,</span> <span class="n">DocumentVersion</span><span class="p">,</span> <span class="n">DocumentPage</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">doc</span> <span class="o">=</span> <span class="n">Document</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="s2">&quot;report.pdf&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Q3 report&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># document_ext is a DocumentExtension; document_id defaults to &quot;doc_&lt;hex12&gt;&quot;</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">version</span> <span class="o">=</span> <span class="n">DocumentVersion</span><span class="p">(</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">document_path</span><span class="o">=</span><span class="s2">&quot;report.pdf&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">document_metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;year&quot;</span><span class="p">:</span> <span class="mi">2023</span><span class="p">,</span> <span class="s2">&quot;region&quot;</span><span class="p">:</span> <span class="s2">&quot;EU&quot;</span><span class="p">},</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="p">)</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">version</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">with_metadata</span><span class="p">(</span><span class="n">language</span><span class="o">=</span><span class="s2">&quot;en&quot;</span><span class="p">)</span>   <span class="c1"># returns a copy with metadata merged</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="n">page</span> <span class="o">=</span> <span class="n">DocumentPage</span><span class="p">(</span><span class="n">page_number</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>   <span class="c1"># page_number is 1-indexed; &lt; 1 raises ValueError</span>
+</code></pre></div>
+<p><code>DocumentVersion</code> exposes <code>path</code> and <code>filename</code> properties; <code>Document.from_path</code>
+infers the extension and defaults the title to the file stem.</p>
+<h2 id="discovery-and-checksums">Discovery and checksums<a class="headerlink" href="#discovery-and-checksums" title="Permanent link">&para;</a></h2>
+<p><code>needle_core.domain.document.discovery</code> walks a directory tree and turns
+recognised files into <code>(Document, DocumentVersion)</code> pairs ready for indexing. A
+file is kept when its extension resolves to a known <code>DocumentExtension</code> (or appears
+in an explicit <code>suffixes</code> allow-list).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">needle_core.domain.document.discovery</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="n">discover_documents</span><span class="p">,</span> <span class="n">count_by_extension</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="p">)</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">pairs</span> <span class="o">=</span> <span class="n">discover_documents</span><span class="p">(</span><span class="s2">&quot;./corpus&quot;</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pdf&quot;</span><span class="p">,</span> <span class="s2">&quot;png&quot;</span><span class="p">],</span> <span class="n">with_checksum</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">counts</span> <span class="o">=</span> <span class="n">count_by_extension</span><span class="p">(</span><span class="s2">&quot;./corpus&quot;</span><span class="p">)</span>   <span class="c1"># {&quot;pdf&quot;: 12, &quot;png&quot;: 3}</span>
+</code></pre></div>
+<p><code>needle_core.domain.document.checksum</code> provides streamed SHA-256 helpers
+(used by discovery when <code>with_checksum=True</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">needle_core.domain.document.checksum</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="n">sha256_bytes</span><span class="p">,</span> <span class="n">sha256_file</span><span class="p">,</span> <span class="n">short_checksum</span><span class="p">,</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="p">)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">short_checksum</span><span class="p">(</span><span class="s2">&quot;report.pdf&quot;</span><span class="p">)</span>          <span class="c1"># first 12 hex chars of the digest</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">sha256_file</span><span class="p">(</span><span class="s2">&quot;report.pdf&quot;</span><span class="p">)</span>             <span class="c1"># full hex digest (streamed in chunks)</span>
+</code></pre></div>
+<h2 id="queries-and-metadata-filters">Queries and metadata filters<a class="headerlink" href="#queries-and-metadata-filters" title="Permanent link">&para;</a></h2>
+<p>A <code>Query</code> carries the natural-language <code>query_text</code> plus an optional
+<code>MetadataFilterSpec</code>. Retrievers read <code>query_text</code> for embedding and call
+<code>get_metadata_filter_spec()</code> to obtain the structured filter.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">needle_core.domain.interaction.query</span><span class="w"> </span><span class="kn">import</span> <span class="n">Query</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">needle_core.domain.metadata.filter_spec</span><span class="w"> </span><span class="kn">import</span> <span class="n">FilterOperator</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Convenience constructor: scalars → EQ, list/tuple/set → IN.</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">.</span><span class="n">of</span><span class="p">(</span><span class="s2">&quot;operating margin&quot;</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;year&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2022</span><span class="p">,</span> <span class="mi">2023</span><span class="p">]})</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># Chainable, explicit operators (returns a new Query each time).</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">with_filter</span><span class="p">(</span><span class="s2">&quot;language&quot;</span><span class="p">,</span> <span class="s2">&quot;en&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">with_filter</span><span class="p">(</span><span class="s2">&quot;year&quot;</span><span class="p">,</span> <span class="mi">2020</span><span class="p">,</span> <span class="n">FilterOperator</span><span class="o">.</span><span class="n">GTE</span><span class="p">)</span>
+</code></pre></div>
+<p>A <code>MetadataFilterSpec</code> is an <strong>ordered conjunction (AND)</strong> of frozen <code>FieldFilter</code>
+<code>(field, operator, value)</code> triples, and <code>FilterOperator</code> is the supported set of
+comparisons (<code>EQ</code>, <code>NE</code>, <code>IN</code>, <code>NIN</code>, <code>GT</code>, <code>GTE</code>, <code>LT</code>, <code>LTE</code>, <code>CONTAINS</code>,
+<code>EXISTS</code>, <code>REGEX</code>). See <a href="../filters/">Filters</a> for the full filter contract.</p>
+<h3 id="metadata-schema-validation">Metadata schema validation<a class="headerlink" href="#metadata-schema-validation" title="Permanent link">&para;</a></h3>
+<p><code>needle_core.domain.metadata.schema</code> declaratively validates a metadata
+dict against a list of <code>MetadataField</code> declarations, returning human-readable
+errors:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">needle_core.domain.metadata.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetadataField</span><span class="p">,</span> <span class="n">MetadataSchema</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">schema</span> <span class="o">=</span> <span class="n">MetadataSchema</span><span class="p">([</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">MetadataField</span><span class="p">(</span><span class="s2">&quot;year&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="n">MetadataField</span><span class="p">(</span><span class="s2">&quot;region&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;EU&quot;</span><span class="p">,</span> <span class="s2">&quot;US&quot;</span><span class="p">)),</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">])</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="n">schema</span><span class="o">.</span><span class="n">validate</span><span class="p">({</span><span class="s2">&quot;year&quot;</span><span class="p">:</span> <span class="mi">2023</span><span class="p">,</span> <span class="s2">&quot;region&quot;</span><span class="p">:</span> <span class="s2">&quot;EU&quot;</span><span class="p">})</span>   <span class="c1"># []  (valid)</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="n">schema</span><span class="o">.</span><span class="n">is_valid</span><span class="p">({</span><span class="s2">&quot;region&quot;</span><span class="p">:</span> <span class="s2">&quot;APAC&quot;</span><span class="p">})</span>                <span class="c1"># False (missing year; bad choice)</span>
+</code></pre></div>
+<p>Note that <code>bool</code> is rejected where an <code>int</code> is expected (Python treats <code>bool</code> as an
+<code>int</code> subclass; the schema corrects for that surprise).</p>
+<h2 id="identifiers">Identifiers<a class="headerlink" href="#identifiers" title="Permanent link">&para;</a></h2>
+<p><code>needle_core.domain.identifiers</code> provides typed, self-describing
+identifier wrappers around <code>str</code>. Each stringifies to its raw value and has a
+<code>.new()</code> factory that generates a prefixed, uuid-based id.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">needle_core.domain.identifiers</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentId</span><span class="p">,</span> <span class="n">VersionId</span><span class="p">,</span> <span class="n">QueryId</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">DocumentId</span><span class="o">.</span><span class="n">new</span><span class="p">()</span>   <span class="c1"># DocumentId(value=&quot;doc_1a2b3c4d5e6f&quot;)</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">VersionId</span><span class="o">.</span><span class="n">new</span><span class="p">()</span>    <span class="c1"># VersionId(value=&quot;ver_...&quot;)</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">QueryId</span><span class="o">.</span><span class="n">new</span><span class="p">()</span>      <span class="c1"># QueryId(value=&quot;q_...&quot;)</span>
+</code></pre></div>
+<h2 id="ranking">Ranking<a class="headerlink" href="#ranking" title="Permanent link">&para;</a></h2>
+<p><code>needle_core.domain.ranking</code> models scores and ranked results. A <code>Score</code>
+pairs a raw retriever score with an optional normalised value in <code>[0, 1]</code>; a
+<code>RankedPage</code> ties a score to a page (and optional provenance); a <code>Ranking</code> is an
+ordered list of ranked pages, best first.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">needle_core.domain.ranking</span><span class="w"> </span><span class="kn">import</span> <span class="n">Score</span><span class="p">,</span> <span class="n">RankedPage</span><span class="p">,</span> <span class="n">Ranking</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">ranking</span> <span class="o">=</span> <span class="n">Ranking</span><span class="o">.</span><span class="n">from_scores</span><span class="p">(</span><span class="n">pages</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">raw_scores</span><span class="o">=</span><span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># min-max normalises into [0, 1] and sorts by raw score descending</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">ranking</span><span class="o">.</span><span class="n">best</span>          <span class="c1"># RankedPage for page 2 (highest score)</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="n">ranking</span><span class="o">.</span><span class="n">top_k</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>      <span class="c1"># a new Ranking with the 2 best pages</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="n">score</span> <span class="o">=</span> <span class="n">Score</span><span class="p">(</span><span class="n">raw</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">normalized</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="n">score</span><span class="o">.</span><span class="n">value</span>           <span class="c1"># normalised value if present, else raw</span>
+</code></pre></div>
+<h2 id="pagination">Pagination<a class="headerlink" href="#pagination" title="Permanent link">&para;</a></h2>
+<p><code>needle_core.domain.pagination</code> provides offset/limit pagination. A
+<code>PageRequest</code> captures the requested slice; a <code>Page</code> wraps the resulting items plus
+the total count and computes navigation state.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">needle_core.domain.pagination</span><span class="w"> </span><span class="kn">import</span> <span class="n">PageRequest</span><span class="p">,</span> <span class="n">Page</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">request</span> <span class="o">=</span> <span class="n">PageRequest</span><span class="p">(</span><span class="n">offset</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>   <span class="c1"># offset &gt;= 0, limit &gt;= 1 (else ValueError)</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">page</span> <span class="o">=</span> <span class="n">Page</span><span class="p">(</span><span class="n">items</span><span class="o">=</span><span class="n">results</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="mi">57</span><span class="p">,</span> <span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">page</span><span class="o">.</span><span class="n">has_next</span>      <span class="c1"># True</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="n">page</span><span class="o">.</span><span class="n">has_prev</span>      <span class="c1"># True</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="n">page</span><span class="o">.</span><span class="n">num_pages</span>     <span class="c1"># 6</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="n">page</span><span class="o">.</span><span class="n">page_number</span>   <span class="c1"># 3 (1-indexed)</span>
+</code></pre></div>
+<h2 id="geometry">Geometry<a class="headerlink" href="#geometry" title="Permanent link">&para;</a></h2>
+<p><code>needle_core.domain.geometry</code> defines <code>BoundingBox</code>, an axis-aligned
+rectangle with <code>x0 &lt;= x1</code> and <code>y0 &lt;= y1</code> (validated in <code>__post_init__</code>). It
+supports intersection, intersection-over-union and normalisation to <code>[0, 1]</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">needle_core.domain.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">BoundingBox</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">a</span> <span class="o">=</span> <span class="n">BoundingBox</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="n">b</span> <span class="o">=</span> <span class="n">BoundingBox</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="n">a</span><span class="o">.</span><span class="n">area</span>                 <span class="c1"># 100.0</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="n">a</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>      <span class="c1"># BoundingBox(5, 5, 10, 10)  (or None when disjoint)</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="n">a</span><span class="o">.</span><span class="n">iou</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>               <span class="c1"># intersection-over-union, 0.0 when disjoint</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="n">a</span><span class="o">.</span><span class="n">normalized</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>  <span class="c1"># coordinates divided by width/height</span>
+</code></pre></div>
+<h2 id="events">Events<a class="headerlink" href="#events" title="Permanent link">&para;</a></h2>
+<p><code>needle_core.domain.events</code> provides lightweight records describing things
+that happened in the domain. Each carries an ISO-8601 <code>occurred_at</code> timestamp and
+exposes a stable <code>event_type</code> string (the class name) for routing/serialisation.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">needle_core.domain.events</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>    <span class="n">DomainEvent</span><span class="p">,</span> <span class="n">DocumentIndexed</span><span class="p">,</span> <span class="n">QueryExecuted</span><span class="p">,</span> <span class="n">IndexCleared</span><span class="p">,</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="p">)</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="n">evt</span> <span class="o">=</span> <span class="n">QueryExecuted</span><span class="p">(</span><span class="n">query_text</span><span class="o">=</span><span class="s2">&quot;revenue&quot;</span><span class="p">,</span> <span class="n">num_results</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">took_ms</span><span class="o">=</span><span class="mf">12.3</span><span class="p">)</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="n">evt</span><span class="o">.</span><span class="n">event_type</span>     <span class="c1"># &quot;QueryExecuted&quot;</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="n">evt</span><span class="o">.</span><span class="n">occurred_at</span>    <span class="c1"># ISO-8601 UTC timestamp</span>
+</code></pre></div>
+<h2 id="responses-and-conversations">Responses and conversations<a class="headerlink" href="#responses-and-conversations" title="Permanent link">&para;</a></h2>
+<p><code>needle_core.domain.interaction.response.RetrievalResponse</code> bundles the
+<code>Query</code> that was executed with its ranked results and the wall-clock time the
+retrieval took:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">needle_core.domain.interaction.response</span><span class="w"> </span><span class="kn">import</span> <span class="n">RetrievalResponse</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">response</span> <span class="o">=</span> <span class="n">RetrievalResponse</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">results</span><span class="o">=</span><span class="n">hits</span><span class="p">,</span> <span class="n">took_ms</span><span class="o">=</span><span class="mf">12.3</span><span class="p">)</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="n">response</span><span class="o">.</span><span class="n">best</span>        <span class="c1"># top result, or None</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="n">response</span><span class="o">.</span><span class="n">is_empty</span>    <span class="c1"># whether there are no results</span>
+</code></pre></div>
+<p><code>needle_core.domain.interaction.conversation</code> models multi-turn dialogue.
+A <code>Turn</code> pairs a user <code>Query</code> with an optional response; a <code>Conversation</code> is an
+ordered sequence of turns:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">needle_core.domain.interaction.conversation</span><span class="w"> </span><span class="kn">import</span> <span class="n">Conversation</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="n">convo</span> <span class="o">=</span> <span class="n">Conversation</span><span class="p">()</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="n">convo</span><span class="o">.</span><span class="n">add_turn</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="n">convo</span><span class="o">.</span><span class="n">last</span>                 <span class="c1"># most recent Turn, or None</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="n">convo</span><span class="o">.</span><span class="n">history_text</span><span class="p">()</span>       <span class="c1"># query texts joined by newlines</span>
+</code></pre></div>
+<h2 id="hexagonal-ports">Hexagonal ports<a class="headerlink" href="#hexagonal-ports" title="Permanent link">&para;</a></h2>
+<p><code>needle_core.domain.ports</code> declares the abstractions the retrieval layer
+implements, keeping the domain independent of any concrete backend. Three are
+structural <code>Protocol</code>s (<code>@runtime_checkable</code>) and one is an ABC:</p>
+<table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Kind</th>
+<th>Implemented by</th>
+<th>Key methods</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Embedder</code></td>
+<td><code>Protocol</code></td>
+<td><code>needle.embedders.BaseEmbedder</code> and subclasses</td>
+<td><code>embed_images</code>, <code>embed_query</code>, <code>multi_vector</code></td>
+</tr>
+<tr>
+<td><code>IndexStorePort</code></td>
+<td>ABC</td>
+<td><code>needle.indexing.BaseIndexStore</code> adapters</td>
+<td><code>add</code>, <code>embeddings</code>, <code>payloads</code>, <code>clear</code>, <code>save</code>, <code>load</code>, <code>__len__</code></td>
+</tr>
+<tr>
+<td><code>PageRenderer</code></td>
+<td><code>Protocol</code></td>
+<td><code>needle.retrieval.extractors.PageToImageExtractor</code></td>
+<td><code>extract(path, *, dpi=150, **kwargs)</code></td>
+</tr>
+<tr>
+<td><code>RetrieverPort</code></td>
+<td><code>Protocol</code></td>
+<td><code>needle.retrieval.page_retrievers.BasePageRetriever</code>, <code>RetrievalPipeline</code></td>
+<td><code>index</code>, <code>search</code>, <code>__len__</code></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">needle_core.domain.ports.embedder</span><span class="w"> </span><span class="kn">import</span> <span class="n">Embedder</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">needle_core.domain.ports.index_store</span><span class="w"> </span><span class="kn">import</span> <span class="n">IndexStorePort</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">needle_core.domain.ports.page_renderer</span><span class="w"> </span><span class="kn">import</span> <span class="n">PageRenderer</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">needle_core.domain.ports.retriever</span><span class="w"> </span><span class="kn">import</span> <span class="n">RetrieverPort</span>
+</code></pre></div>
+<p>The application services (<code>needle.application</code>) depend on <code>RetrieverPort</code> rather
+than any concrete retriever, so they work equally with a model-backed retriever or
+a torch-free <a href="../pipeline/"><code>RetrievalPipeline</code></a>. For the <code>Embedder</code> and
+<code>IndexStorePort</code> implementations see <a href="../pipeline/">Pipeline</a> and
+<a href="../indexing/">Indexing</a>; for <code>PageRenderer</code> see <a href="../extractors/">Extractors</a>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
