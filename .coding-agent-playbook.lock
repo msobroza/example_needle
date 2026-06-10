@@ -1,0 +1,48 @@
+schema_version = 1
+engine_version = "0.1.0a0"
+rendered_at = "2026-06-10T15:02:06Z"
+
+[[entries]]
+path = ".continue/prompts/explain.md"
+sha256 = "bd02c9d977660f7b6f7f4dc8bf17fac8c663eae0c513a463dcd1e705903cdac4"
+bytes = 2629
+
+[[entries]]
+path = ".continue/prompts/generate-tests.md"
+sha256 = "a93f6e00a505777c80e023b8aa50c16b0f2fa9bdd2cd75e228db46517ddafb7b"
+bytes = 7879
+
+[[entries]]
+path = ".continue/prompts/refactor.md"
+sha256 = "aa500f910dd34ca7a2ec3223adb5c2393cc562e8109a471e186104e729bc41b1"
+bytes = 5696
+
+[[entries]]
+path = ".continue/prompts/review.md"
+sha256 = "8336a26681d22daecf67417159347db965c43f08ef3869fe695f5552b0ca7905"
+bytes = 7317
+
+[[entries]]
+path = ".continue/rules/00-project-context.md"
+sha256 = "3d52957d293c7dd93a64c1f18bacf5003a5e6a1892325034cd152a38e01eeb9f"
+bytes = 1158
+
+[[entries]]
+path = ".continue/rules/10-python-house-style.md"
+sha256 = "f62b6dd78ef34ec4b66d82852b7ebc9d65227399d29d7bee7c0f986a770461f6"
+bytes = 2495
+
+[[entries]]
+path = ".continue/rules/55-python-error-handling.md"
+sha256 = "c4a8a0c81abef8478215e5e24d4ea087a1173955e6f85c96f86bcc44730d9011"
+bytes = 2403
+
+[[entries]]
+path = ".continue/rules/60-pytest.md"
+sha256 = "b1a3cc30e01f63d89eb529c7751584e120b03af4479a33cea21000717263ef52"
+bytes = 2735
+
+[[entries]]
+path = "AGENTS.md"
+sha256 = "3bf23dda83729a24b05c8a77a7a501d9241208afc14a1e3ebe65381e43a2c3e9"
+bytes = 8201

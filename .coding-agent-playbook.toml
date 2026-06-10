@@ -1,0 +1,40 @@
+schema_version = 1
+adapters_enabled = ["continue"]
+
+[project]
+name = "example-needle"
+kind = "python-library"
+description = "Page-level multimodal document retrieval demo"
+
+[engine]
+version = "0.1.0a0"
+
+[storage]
+artifact_source = "filesystem"
+state_source = "filesystem"
+
+[detector_cache]
+package_manager = "uv"
+python_version = "3.10"
+dev_tools = ["black", "mypy", "ruff"]
+has_dockerfile = true
+has_ci = true
+project_kind = "python-library"
+
+[detector_cache.dependencies]
+numpy = ">=1.23"
+pillow = ">=9.0"
+tqdm = ">=4.60"
+
+[detector_cache.dev_dependencies]
+pytest = ">=7.0"
+pytest-cov = ">=4.0"
+ruff = ">=0.4"
+black = ">=24.0"
+mypy = ">=1.8"
+
+[detector_cache.frameworks]
+pytest = ">=7.0"
+
+[detector_cache.ml_stack]
+numpy = ">=1.23"

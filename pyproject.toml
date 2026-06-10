@@ -69,6 +69,29 @@ dev = [
 
 [project.scripts]
 needle = "needle.cli:main"
+needle-demo = "needle_demo.cli:main"
+
+# Continue.dev demo tooling (`needle-demo` CLI) — install with
+# `uv sync --group demo`. A dependency group (PEP 735), not an extra, so it
+# never lands in the published package metadata.
+[dependency-groups]
+demo = [
+    "pydocs-mcp[sentence-transformers]>=0.3.1",
+    "coding-agent-playbook",
+]
+
+[tool.uv.sources]
+# coding-agent-playbook is not on PyPI yet — consumed from the sibling checkout.
+coding-agent-playbook = { path = "../coding-agent-playbook/coding-agent-playbook" }
+# TEMPORARY bridge until pydocs-mcp 0.3.1 (ships --skip-deps) is on PyPI —
+# delete this line after the release and re-run `uv lock`. Building from git
+# needs a Rust toolchain (cargo); the PyPI wheels won't.
+pydocs-mcp = { git = "https://github.com/msobroza/pydocs-mcp", branch = "main" }
+
+# The demo group needs Python >=3.12 (coding-agent-playbook's floor) while the
+# library itself stays >=3.10 — scope the constraint to the group.
+[tool.uv.dependency-groups]
+demo = { requires-python = ">=3.12" }
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -1,0 +1,8 @@
+# Managed by `needle-demo init` — pydocs-mcp config overlay for the Continue demo.
+# Passed to every demo server / index invocation via `pydocs-mcp --config`.
+# Full reference of tunables: pydocs-mcp's shipped default_config.yaml.
+embedding:
+  provider: sentence_transformers
+  model_name: Qwen/Qwen3-Embedding-0.6B
+  dim: 1024
+  batch_size: 8
