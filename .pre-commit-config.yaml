@@ -20,3 +20,11 @@ repos:
     rev: 24.8.0
     hooks:
       - id: black
+  - repo: local
+    hooks:
+      - id: coding-agent-playbook-sync
+        name: coding-agent-playbook sync
+        entry: cap sync --check
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -187,6 +187,7 @@ needle search "revenue by region" --index index.pkl --top-k 5
 * [`docs/metrics.md`](docs/metrics.md) — retrieval evaluation metrics
 * [`docs/configuration.md`](docs/configuration.md) — config + backends
 * [`docs/cli.md`](docs/cli.md) — the `needle` command line
+* [`docs/continue-demo.md`](docs/continue-demo.md) — Continue.dev demo: MCP code search (pydocs-mcp + Qwen3) + playbook rules
 * [`docs/contributing-a-retriever.md`](docs/contributing-a-retriever.md)
 
 ## Development
