@@ -36,6 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `rag_load_test`: `rag-model-server`, a FastAPI model server with the OVMS `/v3`
+  contract, `make loadtest-models` (`RAG_LOADTEST_TARGET=rerank|embeddings`) and
+  the `fastapi-reranker` / `fastapi-embedder` Domino roles, to compare FastAPI
+  and OpenVINO Model Server serving of the same models.
 - `needle_core` domain package:
   - `DocumentExtension` enum with format detection (`from_path`, `from_string`).
   - `Document`, `DocumentVersion`, `DocumentPage` aggregate.
