@@ -1,0 +1,29 @@
+# Domino compute environment for the OVMS apps (app_ovms_reranker.sh / app_ovms_embedder.sh).
+#
+# The binary URL is pinned in ovms/versions.env; pass it through so the two never drift:
+#   docker build -f rag_load_test/domino/environment/Dockerfile.ovms \
+#     --build-arg "OVMS_BINARY_URL=$(grep '^OVMS_BINARY_URL=' rag_load_test/ovms/versions.env | cut -d= -f2-)" \
+#     -t rag-load-test-ovms-env .
+# In Domino, either reference the pushed image as a custom base image, or pick the
+# BASE_IMAGE below as the base environment and paste everything after FROM into the
+# environment's "Dockerfile Instructions" field.
+ARG BASE_IMAGE=quay.io/domino/compute-environment-images:ubuntu22-py3.10-r4.4-domino6.2-standard
+FROM ${BASE_IMAGE}
+
+# Default mirrors ovms/versions.env (OVMS 2026.3.1, Ubuntu 22.04 build without the Python calculator).
+ARG OVMS_BINARY_URL=https://github.com/openvinotoolkit/model_server/releases/download/v2026.3.1/ovms_ubuntu22_2026.3.1_python_off.tar.gz
+
+USER root
+
+# libxml2 + curl are the documented runtime prerequisites of the OVMS bare-metal tarball.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl libxml2 \
+    && rm -rf /var/lib/apt/lists/*
+
+# The tarball unpacks to ovms/{bin,lib}; keep it under /opt so PATH below is stable.
+RUN curl -fL "$OVMS_BINARY_URL" | tar -xz -C /opt \
+    && chmod -R a+rX /opt/ovms
+
+ENV PATH=/opt/ovms/bin:$PATH LD_LIBRARY_PATH=/opt/ovms/lib
+
+USER ubuntu
