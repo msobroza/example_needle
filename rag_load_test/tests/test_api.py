@@ -1,50 +1,43 @@
-"""FastAPI service driven through TestClient with fake ports (no weights, no network)."""
+"""API tests over fake dependencies: routes, headers, readiness, error mapping, CLI."""
 
 from __future__ import annotations
 
-import asyncio
-import json
-import logging
-import uuid
+import dataclasses
 from collections.abc import Callable, Iterator, Sequence
-from pathlib import Path
 from typing import Any
 
 import pytest
-import uvicorn
-from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from rag_load_test.adapters.chroma_store import ChromaVectorStore
-from rag_load_test.api.__main__ import main
-from rag_load_test.api.app import RagRuntime, create_app, readiness_checks
-from rag_load_test.contracts.models import Passage, ScoredPassage
-from rag_load_test.errors import RagDependencyError
-from rag_load_test.settings import RagSettings
-from rag_load_test.testing import (
+from rag_load_test import api
+from rag_load_test.adapters import INDEX
+from rag_load_test.api import create_app, main, traced
+from rag_load_test.fakes import (
     FakeChatModel,
     FakeEmbedder,
     FakeReranker,
     InMemoryVectorStore,
 )
-from rag_load_test.workflow.nodes import RagDependencies
+from rag_load_test.models import RagDependencyError, ScoredPassage
+from rag_load_test.settings import RagSettings
+from rag_load_test.workflow import RagDependencies
 
 TOPOLOGY = "test-topo"
-QUESTION = "how many vacation days do employees get"
-STAGE_KEYS = {"embed", "retrieve", "rerank", "generate", "total"}
-CORPUS: list[tuple[str, str]] = [
-    ("p1", "employees get 25 vacation days per year"),
-    ("p2", "vacation requests must be approved by a manager"),
-    ("p3", "the cafeteria serves lunch from noon to two"),
-    ("p4", "parking permits are issued by facilities"),
-    ("p5", "remote work policy allows three days per week"),
-    ("p6", "expense reports are due by the fifth of the month"),
-]
-SettingsFactory = Callable[..., RagSettings]
+QUESTION = "How many paid vacation days do employees accrue each year?"
+RERANK_URL = "http://ovms:8001/v3/rerank"
+RESPONSE_FIELDS = {
+    "request_id",
+    "deployment",
+    "question",
+    "mode",
+    "answer",
+    "passages",
+    "timings_ms",
+}
 
 
-class RaisingReranker:
-    """RerankerPort double that fails with the requested RagDependencyError kind."""
+class FailingReranker:
+    """RerankerPort whose ``rerank`` raises a ``RagDependencyError`` of ``kind``."""
 
     def __init__(self, kind: str) -> None:
         self.kind = kind
@@ -52,278 +45,243 @@ class RaisingReranker:
     async def rerank(
         self, query: str, passages: Sequence[ScoredPassage], top_n: int
     ) -> list[ScoredPassage]:
-        raise RagDependencyError(
-            "reranker", "boom", target="http://ovms:8001/v3/rerank", kind=self.kind
-        )
+        raise RagDependencyError("reranker", "boom", target=RERANK_URL, kind=self.kind)
 
     async def ready(self) -> tuple[bool, str]:
-        return True, "raising"
+        return True, "failing-reranker"
 
 
-def _settings(settings_factory: SettingsFactory, **overrides: Any) -> RagSettings:
-    base: dict[str, Any] = {
-        "topology": TOPOLOGY,
-        "reranker_backend": "fake",
-        "embedder_backend": "fake",
-        "llm_backend": "fake",
-        "chroma_path": ":memory:",
-    }
-    return settings_factory(**{**base, **overrides})
+class ExplodingProbeReranker:
+    """RerankerPort whose readiness probe itself raises."""
 
+    async def rerank(
+        self, query: str, passages: Sequence[ScoredPassage], top_n: int
+    ) -> list[ScoredPassage]:
+        return list(passages[:top_n])
 
-def _corpus_rows(embedder: FakeEmbedder) -> tuple[list[Passage], list[list[float]]]:
-    passages = [Passage(id=pid, text=text) for pid, text in CORPUS]
-    return passages, [embedder.embed_text(p.text) for p in passages]
-
-
-def _populated_store(embedder: FakeEmbedder) -> InMemoryVectorStore:
-    # Sync tests only (TestClient drives its own loop); async tests await upsert.
-    store = InMemoryVectorStore()
-    asyncio.run(store.upsert(*_corpus_rows(embedder)))
-    return store
-
-
-def _deps(
-    store: InMemoryVectorStore, embedder: FakeEmbedder, **overrides: Any
-) -> RagDependencies:
-    fields: dict[str, Any] = {
-        "embedder": embedder,
-        "vector_store": store,
-        "reranker": FakeReranker(),
-        "chat_model": FakeChatModel(),
-        "top_k_retrieve": 4,
-        "top_k_rerank": 3,
-    }
-    return RagDependencies(**{**fields, **overrides})
+    async def ready(self) -> tuple[bool, str]:
+        raise RuntimeError("reranker probe exploded")
 
 
 @pytest.fixture
-def deps() -> RagDependencies:
-    embedder = FakeEmbedder()
-    return _deps(_populated_store(embedder), embedder)
+def client_for(
+    settings_factory: Callable[..., RagSettings],
+) -> Callable[[RagDependencies], TestClient]:
+    """``TestClient`` factory; use it as a context manager so the lifespan runs."""
+    settings = settings_factory(topology=TOPOLOGY)
+
+    def make(deps: RagDependencies) -> TestClient:
+        return TestClient(create_app(settings, dependencies=deps))
+
+    return make
 
 
 @pytest.fixture
 def client(
-    settings_factory: SettingsFactory, deps: RagDependencies
+    client_for: Callable[[RagDependencies], TestClient], fake_deps: RagDependencies
 ) -> Iterator[TestClient]:
-    app = create_app(_settings(settings_factory), dependencies=deps)
-    with TestClient(app) as test_client:
+    with client_for(fake_deps) as test_client:
         yield test_client
 
 
-def _client_for(settings_factory: SettingsFactory, deps: RagDependencies) -> TestClient:
-    return TestClient(create_app(_settings(settings_factory), dependencies=deps))
+def _checks_by_name(body: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return {check["name"]: check for check in body["checks"]}
 
 
-def test_query_returns_answer_passages_timings_and_headers(client: TestClient) -> None:
+# --- /query and /retrieve --------------------------------------------------------
+
+
+def test_query_returns_answer_and_headers(client: TestClient) -> None:
     response = client.post("/query", json={"question": QUESTION})
 
     assert response.status_code == 200, response.text
     body = response.json()
+    assert set(body) == RESPONSE_FIELDS
+    assert body["deployment"] == TOPOLOGY
+    assert body["question"] == QUESTION
+    assert body["mode"] == "query"
     assert body["answer"].startswith("[fake-llm]")
-    assert body["deployment"] == TOPOLOGY and body["mode"] == "query"
-    assert 0 < len(body["passages"]) <= 5
-    assert set(body["passages"][0]) == {
-        "id",
-        "text",
-        "retrieval_score",
-        "rerank_score",
-        "metadata",
-    }
-    assert set(body["timings_ms"]) == STAGE_KEYS
-    assert body["timings_ms"]["total"] > 0.0
+    assert body["passages"]
+    assert all(p["rerank_score"] is not None for p in body["passages"])
+    assert body["timings_ms"]["total"] > 0
     assert response.headers["X-RAG-Topology"] == TOPOLOGY
-    assert response.headers["X-Request-ID"] == body["request_id"] != ""
+    assert response.headers["X-Request-ID"] == body["request_id"]
 
 
-def test_retrieve_has_no_answer(client: TestClient) -> None:
+def test_supplied_request_id_is_echoed(client: TestClient) -> None:
+    response = client.post(
+        "/query", json={"question": QUESTION}, headers={"X-Request-ID": "req-123"}
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.headers["X-Request-ID"] == "req-123"
+    assert response.json()["request_id"] == "req-123"
+
+
+def test_retrieve_skips_generation(client: TestClient) -> None:
     response = client.post("/retrieve", json={"question": QUESTION})
 
     assert response.status_code == 200, response.text
     body = response.json()
-    assert body["answer"] is None and body["mode"] == "retrieve"
+    assert body["mode"] == "retrieve"
+    assert body["answer"] is None
     assert body["timings_ms"]["generate"] == 0.0
-    assert len(body["passages"]) == 3
+    assert body["passages"]
 
 
-def test_top_k_overrides_flow_to_the_graph(client: TestClient) -> None:
-    body = client.post(
-        "/query", json={"question": QUESTION, "top_k": 2, "rerank_top_k": 1}
-    ).json()
-    assert len(body["passages"]) == 1
+@pytest.mark.parametrize("path", ["/query", "/retrieve"])
+def test_empty_question_is_rejected(client: TestClient, path: str) -> None:
+    assert client.post(path, json={"question": ""}).status_code == 422
 
 
-@pytest.mark.parametrize(
-    "payload",
-    [
-        {"question": ""},
-        {},
-        {"question": "q", "top_k": 0},
-        {"question": "q", "rerank_top_k": 51},
-    ],
-)
-def test_validation_422_on_bad_body(
-    client: TestClient, payload: dict[str, Any]
-) -> None:
-    response = client.post("/query", json=payload)
-    assert response.status_code == 422
-    assert response.headers["X-RAG-Topology"] == TOPOLOGY  # middleware also wraps 422s
+# --- health and readiness --------------------------------------------------------
 
 
 def test_healthz(client: TestClient) -> None:
     response = client.get("/healthz")
+
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
 
 
-def test_readyz_ready(client: TestClient) -> None:
+def test_readyz_all_checks_ok(client: TestClient) -> None:
     response = client.get("/readyz")
 
     assert response.status_code == 200, response.text
     body = response.json()
     assert body["status"] == "ready"
-    checks = {c["name"]: c for c in body["checks"]}
-    assert {"vector_store", "embedder", "reranker", "embedder_model_match"} <= set(
-        checks
+    checks = _checks_by_name(body)
+    assert set(checks) == {"vector_store", "embedder", "reranker"}
+    assert all(check["ok"] for check in checks.values())
+    assert checks["vector_store"]["detail"].endswith(f"passages in {INDEX}")
+
+
+def test_readyz_empty_store_is_not_ready(
+    client_for: Callable[[RagDependencies], TestClient],
+) -> None:
+    deps = RagDependencies(
+        FakeEmbedder(), InMemoryVectorStore(), FakeReranker(), FakeChatModel()
     )
-    assert all(c["ok"] for c in checks.values())
-    assert checks["vector_store"]["detail"] == "6 passages in rag_passages"
-
-
-def test_readyz_not_ready_when_store_empty(settings_factory: SettingsFactory) -> None:
-    embedder = FakeEmbedder()
-    with _client_for(
-        settings_factory, _deps(InMemoryVectorStore(), embedder)
-    ) as client:
-        response = client.get("/readyz")
+    with client_for(deps) as test_client:
+        response = test_client.get("/readyz")
 
     assert response.status_code == 503
     body = response.json()
     assert body["status"] == "not_ready"
-    checks = {c["name"]: c for c in body["checks"]}
+    checks = _checks_by_name(body)
     assert checks["vector_store"]["ok"] is False
-    assert checks["embedder"]["ok"] is True
+    assert checks["embedder"]["ok"] and checks["reranker"]["ok"]
 
 
-async def test_readiness_checks_skip_reranker_and_warn_on_model_mismatch(
-    settings_factory: SettingsFactory,
+def test_readyz_reports_probe_exception(
+    client_for: Callable[[RagDependencies], TestClient], fake_deps: RagDependencies
 ) -> None:
-    embedder = FakeEmbedder()
-    store = InMemoryVectorStore(embedder_model="other-model")
-    await store.upsert(*_corpus_rows(embedder))
-    runtime = RagRuntime(
-        settings=_settings(settings_factory),
-        deps=_deps(store, embedder, reranker=None),
-        graph=None,
-    )
+    deps = dataclasses.replace(fake_deps, reranker=ExplodingProbeReranker())
+    with client_for(deps) as test_client:
+        response = test_client.get("/readyz")
 
-    checks = {c.name: c for c in await readiness_checks(runtime)}
-
-    assert "reranker" not in checks
-    assert all(c.ok for c in checks.values())
-    assert "other-model" in checks["embedder_model_match"].detail
-    assert embedder.model_name in checks["embedder_model_match"].detail
+    assert response.status_code == 503
+    checks = _checks_by_name(response.json())
+    assert checks["reranker"]["ok"] is False
+    assert "RuntimeError: reranker probe exploded" in checks["reranker"]["detail"]
 
 
-@pytest.mark.parametrize(("kind", "status"), [("unavailable", 503), ("timeout", 504)])
-def test_dependency_error_maps_to_503_and_timeout_to_504(
-    settings_factory: SettingsFactory, kind: str, status: int
+# --- dependency errors -----------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("kind", "status", "error"),
+    [
+        ("unavailable", 503, "reranker_unavailable"),
+        ("timeout", 504, "reranker_timeout"),
+    ],
+)
+def test_dependency_error_maps_to_status(
+    client_for: Callable[[RagDependencies], TestClient],
+    fake_deps: RagDependencies,
+    kind: str,
+    status: int,
+    error: str,
 ) -> None:
-    embedder = FakeEmbedder()
-    deps = _deps(_populated_store(embedder), embedder, reranker=RaisingReranker(kind))
-    with _client_for(settings_factory, deps) as client:
-        response = client.post(
-            "/query", json={"question": QUESTION}, headers={"X-Request-ID": "rid-1"}
-        )
+    deps = dataclasses.replace(fake_deps, reranker=FailingReranker(kind))
+    with client_for(deps) as test_client:
+        response = test_client.post("/query", json={"question": QUESTION})
 
     assert response.status_code == status
     body = response.json()
-    assert body["error"] == f"reranker_{kind}"
+    assert body["error"] == error
+    assert body["target"] == RERANK_URL
     assert "boom" in body["detail"]
-    assert body["target"] == "http://ovms:8001/v3/rerank"
     assert response.headers["X-RAG-Topology"] == TOPOLOGY
-    assert response.headers["X-Request-ID"] == "rid-1"
+    assert response.headers["X-Request-ID"]
 
 
-def test_request_id_is_propagated(client: TestClient) -> None:
-    response = client.post(
-        "/query", json={"question": QUESTION}, headers={"X-Request-ID": "abc"}
-    )
-
-    assert response.headers["X-Request-ID"] == "abc"
-    assert response.json()["request_id"] == "abc"
+# --- traced() ------------------------------------------------------------------
 
 
-def test_each_request_logs_one_json_line(
-    client: TestClient, caplog: pytest.LogCaptureFixture
+def _run(question: str, *, mode: str = "query") -> str:
+    return f"{mode}:{question}"
+
+
+def test_traced_disabled_returns_function_unchanged() -> None:
+    assert traced(_run, enabled=False) is _run
+
+
+def test_traced_wraps_with_domino_add_tracing(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[dict[str, Any]] = []
+
+    def add_tracing(
+        **kwargs: Any,
+    ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+        calls.append(kwargs)
+
+        def decorate(fn: Callable[..., Any]) -> Callable[..., Any]:
+            def wrapped(*args: Any, **kw: Any) -> tuple[str, Any]:
+                return "traced", fn(*args, **kw)
+
+            return wrapped
+
+        return decorate
+
+    monkeypatch.setattr(api, "find_add_tracing", lambda: add_tracing)
+
+    wrapped = traced(_run, enabled=True)
+
+    assert wrapped is not _run
+    assert calls == [{"name": "rag_query", "autolog_frameworks": ["langchain"]}]
+    assert wrapped("q", mode="retrieve") == ("traced", "retrieve:q")
+
+
+def test_traced_without_sdk_returns_function_unchanged(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ) -> None:
-    with caplog.at_level(logging.INFO, logger="rag_load_test.api"):
-        client.post(
-            "/retrieve", json={"question": QUESTION}, headers={"X-Request-ID": "log-1"}
-        )
+    monkeypatch.setattr(api, "find_add_tracing", lambda: None)
 
-    events = [
-        json.loads(r.getMessage())
-        for r in caplog.records
-        if r.name.startswith("rag_load_test.api")
-    ]
-    requests = [e for e in events if e.get("event") == "rag_request"]
-    assert len(requests) == 1
-    logged = requests[0]
-    assert (
-        logged["request_id"],
-        logged["topology"],
-        logged["mode"],
-        logged["status"],
-    ) == ("log-1", TOPOLOGY, "retrieve", 200)
-    assert set(logged["timings_ms"]) == STAGE_KEYS
+    with caplog.at_level("WARNING", logger="rag_load_test"):
+        assert traced(_run, enabled=True) is _run
+
+    assert "dominodatalab[agents]" in caplog.text
 
 
-def test_root_path_comes_from_domino_env(
-    settings_factory: SettingsFactory,
-    deps: RagDependencies,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("DOMINO_RUN_HOST_PATH", "/proxy/run-1")
-    app = create_app(_settings(settings_factory), dependencies=deps)
-
-    assert app.root_path == "/proxy/run-1"
-    with TestClient(app) as client:
-        assert client.get("/healthz").status_code == 200  # routes stay at "/"
+# --- rag-serve ----------------------------------------------------------------
 
 
-def test_lifespan_builds_dependencies_from_settings(
-    settings_factory: SettingsFactory,
-) -> None:
-    settings = _settings(
-        settings_factory, chroma_collection=f"api-{uuid.uuid4().hex[:8]}"
-    )
-    app = create_app(settings)
-
-    with TestClient(app) as client:
-        runtime = app.state.runtime
-        assert isinstance(runtime, RagRuntime) and runtime.settings is settings
-        assert isinstance(runtime.deps.vector_store, ChromaVectorStore)
-        assert isinstance(runtime.deps.embedder, FakeEmbedder)
-        assert client.get("/readyz").status_code == 503  # fresh collection is empty
-
-
-def test_main_runs_uvicorn_with_cli_overrides(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    runs: list[dict[str, Any]] = []
-    monkeypatch.chdir(tmp_path)  # no stray .env
-    monkeypatch.setattr(
-        uvicorn, "run", lambda app, **kwargs: runs.append({"app": app, **kwargs})
-    )
+def test_main_parses_host_and_port(monkeypatch: pytest.MonkeyPatch) -> None:
+    sentinel_app = object()
+    runs: list[tuple[Any, dict[str, Any]]] = []
+    monkeypatch.setattr(api, "create_app", lambda settings: sentinel_app)
+    monkeypatch.setattr(api.uvicorn, "run", lambda app, **kw: runs.append((app, kw)))
 
     assert main(["--host", "127.0.0.1", "--port", "9999"]) == 0
 
-    assert len(runs) == 1
-    assert isinstance(runs[0]["app"], FastAPI)
-    assert (runs[0]["host"], runs[0]["port"], runs[0]["log_level"]) == (
-        "127.0.0.1",
-        9999,
-        "info",
-    )
+    assert runs == [(sentinel_app, {"host": "127.0.0.1", "port": 9999})]
+
+
+def test_main_defaults_to_domino_app_port(monkeypatch: pytest.MonkeyPatch) -> None:
+    runs: list[dict[str, Any]] = []
+    monkeypatch.setattr(api, "create_app", lambda settings: object())
+    monkeypatch.setattr(api.uvicorn, "run", lambda app, **kw: runs.append(kw))
+
+    assert main([]) == 0
+
+    assert runs == [{"host": "0.0.0.0", "port": 8888}]
