@@ -189,6 +189,20 @@ needle search "revenue by region" --index index.pkl --top-k 5
 * [`docs/cli.md`](docs/cli.md) — the `needle` command line
 * [`docs/contributing-a-retriever.md`](docs/contributing-a-retriever.md)
 
+## Load testing the RAG workflow (`rag_load_test/`)
+
+[`rag_load_test/`](rag_load_test/) is a self-contained sub-project (own
+`pyproject.toml`, tests and CI job; it never imports `needle`) that load tests
+one FastAPI + LangGraph text-RAG service (sentence-transformers embedder,
+Elasticsearch vector store via `langchain-elasticsearch`, cross-encoder
+reranker, OpenAI) under three Domino 6.2 topologies — `monolith`,
+`split-reranker` and `split-all`. The workflow code is identical everywhere;
+only the transport behind the embedder/reranker ports changes (in-process
+sentence-transformers vs OpenVINO Model Server over HTTP). A Locust suite
+drives `/query` and `/retrieve`, records per-stage latencies, and the
+`rag-compare` command turns the CSVs into a markdown comparison table.
+See [`rag_load_test/README.md`](rag_load_test/README.md) for the quickstart.
+
 ## Development
 
 ```bash
