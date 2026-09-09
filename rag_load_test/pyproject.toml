@@ -41,6 +41,7 @@ dev = [
 rag-serve = "rag_load_test.api:main"
 rag-ingest = "rag_load_test.corpus:main"
 rag-compare = "rag_load_test.loadtest:compare_main"
+rag-model-server = "rag_load_test.model_server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

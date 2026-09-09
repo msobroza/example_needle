@@ -285,3 +285,14 @@ def test_main_defaults_to_domino_app_port(monkeypatch: pytest.MonkeyPatch) -> No
     assert main([]) == 0
 
     assert runs == [{"host": "0.0.0.0", "port": 8888}]
+
+
+def test_routes_answer_with_and_without_the_domino_prefix(
+    monkeypatch: pytest.MonkeyPatch, settings_factory, fake_deps
+) -> None:
+    """FastAPI serves under DOMINO_RUN_HOST_PATH itself; no proxy layer needed."""
+    monkeypatch.setenv("DOMINO_RUN_HOST_PATH", "/apps/abc123")
+    app = create_app(settings_factory(), dependencies=fake_deps)
+    with TestClient(app) as client:
+        assert client.get("/apps/abc123/healthz").status_code == 200
+        assert client.get("/healthz").status_code == 200

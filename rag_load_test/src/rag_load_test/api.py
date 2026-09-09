@@ -3,8 +3,9 @@
 Routes: ``POST /query`` (full RAG), ``POST /retrieve`` (no LLM call),
 ``GET /healthz``, ``GET /readyz``. Every response carries ``X-Request-ID`` and
 ``X-RAG-Topology`` so Locust can tag runs; dependency failures map to 503
-(unavailable) or 504 (timeout). ``root_path`` follows ``DOMINO_RUN_HOST_PATH``,
-the prefix Domino's reverse proxy puts in front of every app.
+(unavailable) or 504 (timeout). ``root_path`` follows ``DOMINO_RUN_HOST_PATH``, the
+prefix Domino serves the app under, so the app answers with or without the
+prefix on the wire and needs no proxy in front (unlike OVMS).
 
 Example::
 

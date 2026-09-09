@@ -1,6 +1,6 @@
 # rag_load_test — developer tasks (run from this directory)
 .DEFAULT_GOAL := help
-.PHONY: help install install-dev lint format typecheck test ingest serve loadtest compare ovms-export infra-up infra-down
+.PHONY: help install install-dev lint format typecheck test ingest serve model-server loadtest loadtest-models compare ovms-export infra-up infra-down
 
 PYTHON ?= python
 RUN_NAME ?= monolith
@@ -8,6 +8,9 @@ HOST ?= http://localhost:8888
 USERS ?= 20
 SPAWN_RATE ?= 5
 RUN_TIME ?= 2m
+TARGET ?= rerank
+SERVE ?= reranker
+PORT ?= 8011
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -38,6 +41,14 @@ ingest: ## Index the synthetic corpus into Elasticsearch (RAG_ES_URL)
 
 serve: ## Run the FastAPI service with the current RAG_* environment
 	rag-serve
+
+model-server: ## Serve one model with FastAPI (OVMS contract): make model-server SERVE=reranker PORT=8011
+	rag-model-server --serve $(SERVE) --host 0.0.0.0 --port $(PORT)
+
+loadtest-models: ## Locust straight at a model server: make loadtest-models RUN_NAME=ovms-rerank HOST=http://host:8001 TARGET=rerank|embeddings
+	mkdir -p results
+	RAG_LOADTEST_TARGET=$(TARGET) locust --headless --host $(HOST) -u $(USERS) -r $(SPAWN_RATE) -t $(RUN_TIME) \
+		--csv results/$(RUN_NAME) --html results/$(RUN_NAME).html --only-summary
 
 loadtest: ## Headless locust run: make loadtest RUN_NAME=monolith HOST=http://host:8888
 	mkdir -p results

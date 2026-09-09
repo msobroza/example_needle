@@ -46,6 +46,7 @@ src/rag_load_test/
   api.py            FastAPI app (/query /retrieve /healthz /readyz), Domino tracing, JSON logs, rag-serve
   corpus.py         synthetic handbook corpus, JSONL loader, chunking, rag-ingest
   loadtest.py       locust-free helpers (auth headers, stage events, questions) + rag-compare
+  model_server.py   FastAPI model server with the OVMS /v3 contract (rag-model-server)
 locustfile.py       RagUser (FastHttpUser) + opt-in StepLoadShape; `locust` finds it in this directory
 docker-compose.yml  Elasticsearch 9.0.0 (:9200) + OVMS reranker (:8001) + OVMS embedder (:8002)
 ovms/               versions.env (single version pin), export_models.sh, models/ (exported, git-ignored)
@@ -127,6 +128,44 @@ per endpoint and per stage: requests, failure %, RPS, p50, p95, p99 and Δp95
 versus the first run. Pick another baseline by calling it directly:
 `rag-compare results/split-all results/monolith --out results/comparison.md`.
 
+## Experiment 2: serving the models with FastAPI versus OVMS
+
+`rag-model-server` serves one model per process behind the same `/v3` contract
+as OpenVINO Model Server (`POST /v3/embeddings`, `POST /v3/rerank`,
+`GET /v3/models/<alias>`), using the in-process sentence-transformers adapters.
+The workflow app cannot tell the two servers apart, so the comparison needs no
+code change: point `RAG_OVMS_RERANK_URL` / `RAG_OVMS_EMBEDDINGS_URL` at one or
+the other.
+
+Direct comparison (Locust straight at the model servers, same payloads as the
+workflow sends: 20 candidate passages per rerank, one question per embedding):
+
+```bash
+make infra-up                                   # OVMS reranker :8001, embedder :8002
+make model-server SERVE=reranker PORT=8011      # FastAPI reranker (downloads the weights once)
+make model-server SERVE=embedder PORT=8012      # FastAPI embedder, in a second shell
+
+make loadtest-models RUN_NAME=rerank-ovms    HOST=http://localhost:8001 TARGET=rerank
+make loadtest-models RUN_NAME=rerank-fastapi HOST=http://localhost:8011 TARGET=rerank
+make loadtest-models RUN_NAME=embed-ovms     HOST=http://localhost:8002 TARGET=embeddings
+make loadtest-models RUN_NAME=embed-fastapi  HOST=http://localhost:8012 TARGET=embeddings
+rag-compare results/rerank-ovms results/rerank-fastapi --out results/rerank.md
+rag-compare results/embed-ovms results/embed-fastapi --out results/embeddings.md
+```
+
+End-to-end comparison (the split topologies with either server behind them):
+
+```bash
+RAG_TOPOLOGY=split-reranker-fastapi RAG_RERANKER_BACKEND=ovms RAG_OVMS_RERANK_URL=http://localhost:8011 make serve
+make loadtest RUN_NAME=split-reranker-fastapi HOST=http://localhost:8888
+```
+
+On Domino, `RAG_ROLE=fastapi-reranker` / `fastapi-embedder` publish the FastAPI
+servers with the `rag` environment (no OVMS binary needed); the workflow app's
+`RAG_OVMS_*_URL` then points at those App URLs exactly as for the OVMS apps.
+`RAG_LOADTEST_TARGET` selects the Locust user class: `rag` (default,
+`/query` + `/retrieve`), `rerank` or `embeddings`.
+
 ## HTTP API
 
 | Route | Body → result |
@@ -140,7 +179,8 @@ versus the first run. Pick another baseline by calling it directly:
 `X-Request-ID` is propagated). Errors: dependency failure → `503`
 `{"error":"<component>_unavailable","detail","target"}`, upstream timeout →
 `504` `{"error":"<component>_timeout",...}`, validation → `422`. `root_path`
-follows `DOMINO_RUN_HOST_PATH` so `/docs` works behind Domino's proxy.
+follows `DOMINO_RUN_HOST_PATH`, so the app answers with or without Domino's
+prefix on the wire and `/docs` works behind the proxy.
 `rag-serve --host 0.0.0.0 --port 8888` are the defaults (host and port are
 flags, not settings).
 
@@ -247,11 +287,12 @@ topologies, so the Locust numbers stay comparable.
 | Topology | App | `RAG_ROLE` | Environment variables | Image |
 | --- | --- | --- | --- | --- |
 | `monolith` | one app: workflow + embedder + reranker | `monolith` (default) | `OPENAI_API_KEY`, `RAG_ES_URL` (+ `RAG_ES_API_KEY`) | `rag` |
-| `split-reranker` | **A** OVMS reranker | `ovms-reranker` | `RAG_OVMS_MODELS_DIR` when the Dataset is not at `/mnt/data/ovms-models` | `ovms` |
+| `split-reranker` | **A** OVMS reranker | `ovms-reranker` | `RAG_OVMS_MODELS_DIR` when the Dataset is not at `/mnt/data/ovms-models`; `RAG_OVMS_PREFIX_PROXY=1` if the prefix reaches OVMS | `ovms` |
 | | **B** workflow + embedder | `workflow` | `RAG_OVMS_RERANK_URL=<URL of A>`, `OPENAI_API_KEY`, `RAG_ES_URL` | `rag` |
 | `split-all` | **A** OVMS reranker | `ovms-reranker` | as above | `ovms` |
 | | **C** OVMS embedder | `ovms-embedder` | as above | `ovms` |
 | | **B** workflow | `workflow` | `RAG_OVMS_RERANK_URL=<URL of A>`, `RAG_EMBEDDER_BACKEND=ovms`, `RAG_OVMS_EMBEDDINGS_URL=<URL of C>`, `OPENAI_API_KEY`, `RAG_ES_URL` | `rag` |
+| FastAPI variants | **A'** / **C'** the same models behind `rag-model-server` | `fastapi-reranker` / `fastapi-embedder` | none (weights from `RAG_RERANKER_MODEL` / `RAG_EMBEDDER_MODEL`); point B's `RAG_OVMS_*_URL` at these apps instead | `rag` |
 
 The `workflow` role forces `RAG_RERANKER_BACKEND=ovms`, defaults
 `RAG_OVMS_AUTH=domino` and derives `RAG_TOPOLOGY` (`split-reranker`, or
@@ -296,10 +337,29 @@ refreshes it on `401` and sends it as `Authorization: Bearer` on every OVMS
 call. Set `RAG_OVMS_AUTH=<token>` to use a fixed token instead.
 
 **Proxy prefix (`DOMINO_RUN_HOST_PATH`).** Domino serves an app under a path
-prefix, exposed to the process as `DOMINO_RUN_HOST_PATH` and stripped by the
-proxy, so routes stay at `/` and the FastAPI app uses it only as `root_path`.
-Callers outside prefix every route with the App URL (`https://<domino-host><DOMINO_RUN_HOST_PATH>/query`);
-`RAG_OVMS_RERANK_URL` / `RAG_OVMS_EMBEDDINGS_URL` are the OVMS App URLs without a trailing slash.
+prefix (`/apps/<app-id>/` in 6.2), exposed to the process as `DOMINO_RUN_HOST_PATH`,
+and its proxy normally strips it before the request reaches the process. The
+FastAPI apps (`rag-serve`, `rag-model-server`) set that value as `root_path`, so
+they answer whether or not the prefix is on the wire, with no proxy layer in
+front. OVMS cannot: its routes are fixed at `/v3/...` and it has no base-path
+option. Check once, from a Workspace, what reaches the OVMS app:
+
+```bash
+curl -i -H "Authorization: Bearer $(curl -s http://localhost:8899/access-token)" \
+  https://<domino-host>/apps/<ovms-app-id>/v3/models/bge-reranker-base
+```
+
+`200`: the prefix is stripped, nothing to do. `404`: the prefix reaches OVMS; set
+`RAG_OVMS_PREFIX_PROXY=1` on the OVMS apps. `app.sh` then starts OVMS on
+`127.0.0.1:9000` and nginx (in the `ovms` image) on `0.0.0.0:8888`, with the
+settings in `domino/ovms-proxy.conf` (`__PREFIX__` is replaced at start-up):
+`location <prefix>/ { proxy_pass http://ovms/; }` drops the prefix and forwards
+over keep-alive HTTP/1.1. OVMS itself is unchanged (same binary,
+config and threads); the cost is one loopback hop, well under a millisecond, plus
+a little CPU on the same pod. Note it in the comparison and keep it identical
+across the OVMS runs. Callers outside prefix every route with the App URL
+(`https://<domino-host><DOMINO_RUN_HOST_PATH>/query`); `RAG_OVMS_RERANK_URL` /
+`RAG_OVMS_EMBEDDINGS_URL` are the App URLs without a trailing slash.
 
 **Tracing and agent deployment.** Agent deployments use the same hosting as
 Apps (same `app.sh`, same `0.0.0.0:8888` rule) plus tracing through
@@ -335,6 +395,7 @@ use an API key instead: `export DOMINO_API_KEY=<Account settings → API Key>` (
 | `503 reranker_unavailable` / `embedder_unavailable` | OVMS app not ready (Dataset missing, wrong `RAG_OVMS_*_URL`, token rejected); check its logs and `GET <OVMS App URL>/v2/health/ready` |
 | `503 vector_store_unavailable` / `/readyz` not ready | `RAG_ES_URL` unreachable or wrong credentials, or `make ingest` never ran against that cluster |
 | `app.sh[ovms-*]: OVMS config not found` | Dataset not mounted at `/mnt/data/ovms-models`; set `RAG_OVMS_MODELS_DIR` |
+| `404` from an OVMS app on `/v3/...` | Domino forwards the path prefix; set `RAG_OVMS_PREFIX_PROXY=1` on that app (see Proxy prefix) |
 
 ## Development
 
