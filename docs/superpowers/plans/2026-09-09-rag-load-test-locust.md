@@ -1,5 +1,7 @@
 # RAG Load Test (Locust, three Domino topologies) Implementation Plan
 
+> **Superseded 2026-09-09:** the file layout in this plan (sub-packages, `scripts/`, `loadtest/locustfile.py`, Chroma) was replaced by the consolidated ten-module layout in §4 of the spec (`docs/superpowers/specs/2026-09-09-rag-load-test-locust-design.md`); the task breakdown below is kept as history.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add `rag_load_test/` — one FastAPI + LangGraph RAG service whose embedder/reranker transports are switchable between in-process sentence-transformers and OpenVINO Model Server (OVMS) HTTP, plus a Locust suite and comparison script, deployable on Domino 6.2 as a monolith (1 app), split-reranker (2 apps) or split-all (3 apps).

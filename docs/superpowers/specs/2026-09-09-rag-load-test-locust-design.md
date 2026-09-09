@@ -1,5 +1,20 @@
 # RAG load test with Locust — design
 
+> **Revision 2026-09-09.** The implementation consolidated this design:
+>
+> - the package is ten flat modules (§4) instead of the `contracts/adapters/workflow/api/ingest/loadtest/testing`
+>   sub-packages; `scripts/` became the `rag-compare` console script and the locustfile moved to the sub-project root;
+> - the vector store is Elasticsearch through `langchain-elasticsearch` (`AsyncElasticsearchStore`, index
+>   `rag_passages`, settings `RAG_ES_URL` / `RAG_ES_API_KEY`) instead of Chroma; `docker-compose.yml` at the
+>   sub-project root starts Elasticsearch 9.0.0 and the two OVMS servables (`make infra-up`);
+> - settings are the 15 fields of `settings.py`; timeouts, retries, top-k and thread counts are constants so
+>   experiments only vary the topology (`RAG_OVMS_AUTH` is `""` / `domino` / `<token>`; host and port are
+>   `rag-serve --host/--port` flags);
+> - Domino: one entry point `domino/app.sh` (role from `RAG_ROLE`) and one `domino/Dockerfile` with `rag` and
+>   `ovms` targets; `rag_load_test/README.md` is the single document (the `ovms/` and `domino/` READMEs are gone).
+>
+> §4 below is updated; the other sections describe the original design and `rag_load_test/README.md` is the reference.
+
 Date: 2026-09-09
 Status: approved under stated assumptions (autonomous session; see "Assumptions")
 Location of the new code: `rag_load_test/` (top-level directory of this monorepo)
@@ -54,76 +69,31 @@ the Locust CSVs into a markdown comparison table.
 
 ```
 rag_load_test/
-  README.md                     # architecture diagram, quickstart, how to compare topologies
-  pyproject.toml                # project "rag-load-test"; extras: [ovms-export], [domino], [dev]
-  Makefile                      # install, lint, format, test, ingest, serve, loadtest, compare
+  README.md                   # the single document: topologies, quickstart, API, configuration, Elasticsearch, OVMS, Domino
+  pyproject.toml              # project "rag-load-test"; scripts rag-serve / rag-ingest / rag-compare; extras [loadtest], [domino], [dev]
+  Makefile                    # install(-dev), lint, format, typecheck, test, ingest, serve, loadtest, compare, ovms-export, infra-up/down
   .env.example
+  docker-compose.yml          # Elasticsearch 9.0.0 (9200) + OVMS reranker (8001) + OVMS embedder (8002)
+  locustfile.py               # RagUser (FastHttpUser) + opt-in StepLoadShape; `locust` auto-discovers it here
   src/rag_load_test/
     __init__.py
-    settings.py                 # RagSettings (pydantic-settings, prefix RAG_)
-    errors.py                   # RagDependencyError, RagConfigError
-    contracts/
-      __init__.py
-      models.py                 # Passage, ScoredPassage, StageTimings, RagResult (pydantic)
-      ports.py                  # Protocols: EmbedderPort, RerankerPort, VectorStorePort, ChatModelPort
-    adapters/
-      __init__.py
-      auth.py                   # BearerTokenProvider: StaticToken | DominoAccessToken (cached, refreshed)
-      http_retry.py             # post_json_with_retry(client, url, payload, ...): timeout + bounded retries
-      local_embedder.py         # SentenceTransformerEmbedder (thread pool)
-      local_reranker.py         # CrossEncoderReranker (thread pool)
-      ovms_embedder.py          # OvmsEmbedder  -> POST {base}/v3/embeddings
-      ovms_reranker.py          # OvmsReranker  -> POST {base}/v3/rerank
-      chroma_store.py           # ChromaVectorStore (PersistentClient / EphemeralClient, to_thread)
-      openai_chat.py            # OpenAIChatModel (AsyncOpenAI, timeout + max_retries)
-      fake_chat.py              # FakeChatModel (deterministic answer, optional latency)
-    workflow/
-      __init__.py
-      state.py                  # RagState TypedDict
-      prompts.py                # build_rag_messages(question, passages)
-      nodes.py                  # embed_query / retrieve / rerank / generate node factories (timed)
-      graph.py                  # build_rag_graph(deps) -> compiled LangGraph StateGraph
-      dependencies.py           # RagDependencies dataclass + build_dependencies(settings)
-    api/
-      __init__.py
-      schemas.py                # QueryRequest, QueryResponse, RetrieveResponse, ReadyResponse
-      tracing.py                # traced(name): Domino add_tracing if available, else identity
-      app.py                    # create_app(settings, dependencies=None) with lifespan + RagRuntime
-      routes.py                 # APIRouter: /query /retrieve /healthz /readyz
-      __main__.py               # python -m rag_load_test.api  -> uvicorn
-    ingest/
-      __init__.py
-      corpus.py                 # synthetic_corpus(n, seed), load_jsonl_corpus(path), chunk_document
-      ingest_cli.py             # rag-ingest console script
-    testing/
-      __init__.py
-      fakes.py                  # FakeEmbedder, FakeReranker, InMemoryVectorStore
-    loadtest/
-      __init__.py
-      helpers.py                # auth_headers(), stage_events(), pick_question() — locust-free, unit-tested
-      questions.py              # question bank (derived from the synthetic corpus)
-      shapes.py                 # StepLoadShape (opt-in via RAG_LOADTEST_SHAPE=step)
-  loadtest/
-    locustfile.py               # RagUser (FastHttpUser): query/retrieve tasks + per-stage STAGE events
-  scripts/
-    run_loadtest.sh             # headless locust run -> results/<name>_stats.csv + html
-    compare_runs.py             # N locust CSV prefixes -> markdown comparison table
+    models.py                 # Passage, ScoredPassage, RagResult, STAGES, the four async ports, RagDependencyError
+    settings.py               # RagSettings: 15 RAG_* fields; sizes, timeouts, retries and threads are constants
+    adapters.py               # SentenceTransformerEmbedder, CrossEncoderReranker, NoReranker, ElasticsearchVectorStore, OpenAIChatModel
+    ovms.py                   # BearerToken (static or Domino run token), OvmsEndpoint, OvmsEmbedder, OvmsReranker
+    fakes.py                  # FakeEmbedder, FakeReranker, InMemoryVectorStore, FakeChatModel
+    workflow.py               # RagState, RagDependencies, RagWorkflow (LangGraph, timed nodes), build_dependencies
+    api.py                    # FastAPI app (/query /retrieve /healthz /readyz), tracing, JSON logs, rag-serve
+    corpus.py                 # synthetic corpus, JSONL loader, chunking, rag-ingest
+    loadtest.py               # locust-free helpers (auth headers, stage events, questions) + rag-compare
   ovms/
-    versions.env                # OVMS_VERSION=2026.3.1 (single source of truth)
-    export_models.sh            # downloads export_model.py, exports reranker + embedder to ovms/models
-    docker-compose.yml          # local OVMS reranker (8001) + embedder (8002) for split topologies
-    README.md
+    versions.env              # OVMS version/image/binary pin + model ids (single source of truth)
+    export_models.sh          # exports both models (int8) to ovms/models or a Domino Dataset
   domino/
-    app_monolith.sh             # Domino App entry point, topology monolith
-    app_workflow.sh             # Domino App entry point, topology split-reranker / split-all (env-driven)
-    app_ovms_reranker.sh        # Domino App entry point: ovms binary serving the reranker on 8888
-    app_ovms_embedder.sh        # Domino App entry point: ovms binary serving the embedder on 8888
-    environment/Dockerfile.rag  # Domino environment snippet: python deps + pre-cached HF models
-    environment/Dockerfile.ovms # Domino environment snippet: ovms binary
-    README.md                   # step-by-step deployment for the three topologies + auth
-  tests/                        # pytest, torch/model-free (see §10)
-  data/.gitkeep                 # RAG_CHROMA_PATH default = rag_load_test/data/chroma (git-ignored)
-  results/.gitkeep              # locust output (git-ignored)
+    app.sh                    # one Domino entry point; RAG_ROLE = monolith | workflow | ovms-reranker | ovms-embedder
+    Dockerfile                # two targets: rag (package + pre-downloaded HF models) and ovms (pinned binary)
+  tests/                      # pytest: no weights, no network, no Elasticsearch
+  results/.gitkeep            # locust output (git-ignored)
 ```
 
 Files stay under ~300 lines; functions under ~20 lines (repo convention).
