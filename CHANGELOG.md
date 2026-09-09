@@ -23,6 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   metadata schema, conversation/response, document discovery + checksums.
 - Packaging/dev extras: Dockerfile, mkdocs site, tox, Read the Docs, release &
   docs workflows, Dependabot, CODEOWNERS, SECURITY and CITATION.
+- `rag_load_test/` sub-project: a FastAPI + LangGraph text-RAG service with
+  switchable embedder/reranker transports (in-process sentence-transformers or
+  OpenVINO Model Server over HTTP), a Locust suite recording per-stage
+  latencies, a run-comparison script, Domino 6.2 entry points for the
+  `monolith` / `split-reranker` / `split-all` topologies, and a dedicated
+  `rag-load-test` CI job.
 
 ## [0.1.0] - 2024-01-01
 

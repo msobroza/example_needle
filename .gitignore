@@ -53,3 +53,10 @@ indexes/
 
 # Jupyter
 .ipynb_checkpoints/
+
+# rag_load_test sub-project: runtime index, load-test output, exported OVMS models, secrets
+rag_load_test/data/chroma/
+rag_load_test/results/*
+!rag_load_test/results/.gitkeep
+rag_load_test/ovms/models/
+rag_load_test/.env
