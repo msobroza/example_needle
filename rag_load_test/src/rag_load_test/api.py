@@ -3,8 +3,9 @@
 Routes: ``POST /query`` (full RAG), ``POST /retrieve`` (no LLM call),
 ``GET /healthz``, ``GET /readyz``. Every response carries ``X-Request-ID`` and
 ``X-RAG-Topology`` so Locust can tag runs; dependency failures map to 503
-(unavailable) or 504 (timeout). Routes live at ``/``; Domino's proxy strips the
-app path prefix before requests arrive, like it does for OVMS.
+(unavailable) or 504 (timeout). ``root_path`` follows ``DOMINO_RUN_HOST_PATH``, the
+prefix Domino serves the app under, so the app answers with or without the
+prefix on the wire and needs no proxy in front (unlike OVMS).
 
 Example::
 
@@ -17,6 +18,7 @@ import argparse
 import importlib
 import json
 import logging
+import os
 import uuid
 from collections.abc import AsyncIterator, Callable, Sequence
 from contextlib import asynccontextmanager
@@ -144,7 +146,11 @@ def create_app(
             finally:
                 executor.shutdown(wait=False)
 
-    app = FastAPI(title="rag-load-test", lifespan=lifespan)
+    app = FastAPI(
+        title="rag-load-test",
+        root_path=os.environ.get("DOMINO_RUN_HOST_PATH", ""),
+        lifespan=lifespan,
+    )
 
     @app.middleware("http")
     async def stamp_headers(request: Request, call_next: Callable[..., Any]) -> Any:

@@ -167,3 +167,13 @@ def test_loadtest_target_selects_one_user_class(
     }
     assert [name for name, abstract in flags.items() if not abstract] == [active]
     assert len(module.RERANK_DOCUMENTS) >= 20
+
+
+def test_model_server_answers_under_the_domino_prefix(
+    monkeypatch: pytest.MonkeyPatch, settings_factory: Callable[..., RagSettings]
+) -> None:
+    monkeypatch.setenv("DOMINO_RUN_HOST_PATH", "/apps/abc123")
+    app = create_model_server("reranker", settings_factory(), reranker=FakeReranker())
+    with TestClient(app) as client:
+        assert client.get("/apps/abc123/v3/models/bge-reranker-base").status_code == 200
+        assert client.get("/v3/models/bge-reranker-base").status_code == 200

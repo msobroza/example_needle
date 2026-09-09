@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 from collections.abc import AsyncIterator, Sequence
 from contextlib import asynccontextmanager
 from typing import Any, Literal
@@ -83,7 +84,13 @@ def create_model_server(
         finally:
             executor.shutdown(wait=False)
 
-    app = FastAPI(title=f"rag-model-server ({role})", lifespan=lifespan)
+    app = FastAPI(
+        title=f"rag-model-server ({role})",
+        root_path=os.environ.get(
+            "DOMINO_RUN_HOST_PATH", ""
+        ),  # served under Domino's prefix
+        lifespan=lifespan,
+    )
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:
