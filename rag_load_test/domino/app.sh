@@ -6,6 +6,8 @@
 #                  the reranker and the embedder (split-all, RAG_EMBEDDER_BACKEND=ovms)
 #   ovms-reranker  OpenVINO Model Server serving config_reranker.json
 #   ovms-embedder  OpenVINO Model Server serving config_embedder.json
+#   fastapi-reranker / fastapi-embedder   the same models behind rag-model-server
+#                  (same /v3 contract as OVMS) for the FastAPI-vs-OVMS experiment
 # Domino only routes traffic to processes listening on 0.0.0.0:8888.
 set -euo pipefail
 
@@ -52,10 +54,16 @@ serve_ovms() {
   exec ovms --rest_port 8888 --config_path "$config"
 }
 
+serve_fastapi_model() {
+  exec rag-model-server --serve "$1" --host 0.0.0.0 --port 8888
+}
+
 case "$ROLE" in
   monolith) serve_monolith ;;
   workflow) serve_workflow ;;
   ovms-reranker) serve_ovms config_reranker.json ;;
   ovms-embedder) serve_ovms config_embedder.json ;;
-  *) die "unknown RAG_ROLE '$ROLE'; expected monolith, workflow, ovms-reranker or ovms-embedder" ;;
+  fastapi-reranker) serve_fastapi_model reranker ;;
+  fastapi-embedder) serve_fastapi_model embedder ;;
+  *) die "unknown RAG_ROLE '$ROLE'; expected monolith, workflow, ovms-reranker, ovms-embedder, fastapi-reranker or fastapi-embedder" ;;
 esac

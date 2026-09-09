@@ -46,6 +46,7 @@ src/rag_load_test/
   api.py            FastAPI app (/query /retrieve /healthz /readyz), Domino tracing, JSON logs, rag-serve
   corpus.py         synthetic handbook corpus, JSONL loader, chunking, rag-ingest
   loadtest.py       locust-free helpers (auth headers, stage events, questions) + rag-compare
+  model_server.py   FastAPI model server with the OVMS /v3 contract (rag-model-server)
 locustfile.py       RagUser (FastHttpUser) + opt-in StepLoadShape; `locust` finds it in this directory
 docker-compose.yml  Elasticsearch 9.0.0 (:9200) + OVMS reranker (:8001) + OVMS embedder (:8002)
 ovms/               versions.env (single version pin), export_models.sh, models/ (exported, git-ignored)
@@ -126,6 +127,44 @@ totals. `make compare` feeds every `results/*_stats.csv` prefix (sorted, so
 per endpoint and per stage: requests, failure %, RPS, p50, p95, p99 and Δp95
 versus the first run. Pick another baseline by calling it directly:
 `rag-compare results/split-all results/monolith --out results/comparison.md`.
+
+## Experiment 2: serving the models with FastAPI versus OVMS
+
+`rag-model-server` serves one model per process behind the same `/v3` contract
+as OpenVINO Model Server (`POST /v3/embeddings`, `POST /v3/rerank`,
+`GET /v3/models/<alias>`), using the in-process sentence-transformers adapters.
+The workflow app cannot tell the two servers apart, so the comparison needs no
+code change: point `RAG_OVMS_RERANK_URL` / `RAG_OVMS_EMBEDDINGS_URL` at one or
+the other.
+
+Direct comparison (Locust straight at the model servers, same payloads as the
+workflow sends: 20 candidate passages per rerank, one question per embedding):
+
+```bash
+make infra-up                                   # OVMS reranker :8001, embedder :8002
+make model-server SERVE=reranker PORT=8011      # FastAPI reranker (downloads the weights once)
+make model-server SERVE=embedder PORT=8012      # FastAPI embedder, in a second shell
+
+make loadtest-models RUN_NAME=rerank-ovms    HOST=http://localhost:8001 TARGET=rerank
+make loadtest-models RUN_NAME=rerank-fastapi HOST=http://localhost:8011 TARGET=rerank
+make loadtest-models RUN_NAME=embed-ovms     HOST=http://localhost:8002 TARGET=embeddings
+make loadtest-models RUN_NAME=embed-fastapi  HOST=http://localhost:8012 TARGET=embeddings
+rag-compare results/rerank-ovms results/rerank-fastapi --out results/rerank.md
+rag-compare results/embed-ovms results/embed-fastapi --out results/embeddings.md
+```
+
+End-to-end comparison (the split topologies with either server behind them):
+
+```bash
+RAG_TOPOLOGY=split-reranker-fastapi RAG_RERANKER_BACKEND=ovms RAG_OVMS_RERANK_URL=http://localhost:8011 make serve
+make loadtest RUN_NAME=split-reranker-fastapi HOST=http://localhost:8888
+```
+
+On Domino, `RAG_ROLE=fastapi-reranker` / `fastapi-embedder` publish the FastAPI
+servers with the `rag` environment (no OVMS binary needed); the workflow app's
+`RAG_OVMS_*_URL` then points at those App URLs exactly as for the OVMS apps.
+`RAG_LOADTEST_TARGET` selects the Locust user class: `rag` (default,
+`/query` + `/retrieve`), `rerank` or `embeddings`.
 
 ## HTTP API
 
@@ -252,6 +291,7 @@ topologies, so the Locust numbers stay comparable.
 | `split-all` | **A** OVMS reranker | `ovms-reranker` | as above | `ovms` |
 | | **C** OVMS embedder | `ovms-embedder` | as above | `ovms` |
 | | **B** workflow | `workflow` | `RAG_OVMS_RERANK_URL=<URL of A>`, `RAG_EMBEDDER_BACKEND=ovms`, `RAG_OVMS_EMBEDDINGS_URL=<URL of C>`, `OPENAI_API_KEY`, `RAG_ES_URL` | `rag` |
+| FastAPI variants | **A'** / **C'** the same models behind `rag-model-server` | `fastapi-reranker` / `fastapi-embedder` | none (weights from `RAG_RERANKER_MODEL` / `RAG_EMBEDDER_MODEL`); point B's `RAG_OVMS_*_URL` at these apps instead | `rag` |
 
 The `workflow` role forces `RAG_RERANKER_BACKEND=ovms`, defaults
 `RAG_OVMS_AUTH=domino` and derives `RAG_TOPOLOGY` (`split-reranker`, or
