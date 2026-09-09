@@ -8,7 +8,8 @@
 #         run Locust: this package with the [loadtest,domino] extras, both HF
 #         models pre-downloaded, HF_HUB_OFFLINE=1.
 #   ovms  for the OVMS apps (RAG_ROLE=ovms-reranker | ovms-embedder): the ovms
-#         binary tarball pinned in ovms/versions.env, unpacked under /opt/ovms.
+#         binary tarball pinned in ovms/versions.env, unpacked under /opt/ovms,
+#         plus nginx for the optional prefix proxy (RAG_OVMS_PREFIX_PROXY=1).
 #
 # Push the images and create two Domino Environments that use them as custom
 # base images, or pick BASE_IMAGE as the base environment and paste one stage's
@@ -39,10 +40,13 @@ USER ubuntu
 FROM ${BASE_IMAGE} AS ovms
 USER root
 
-# curl + libxml2 are the documented runtime prerequisites of the OVMS bare-metal tarball.
+# curl + libxml2 are the documented runtime prerequisites of the OVMS bare-metal
+# tarball; nginx is the optional prefix-stripping proxy (RAG_OVMS_PREFIX_PROXY=1),
+# run as the ubuntu user with every path under /tmp, hence the chown.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl libxml2 \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y --no-install-recommends curl libxml2 nginx \
+    && rm -rf /var/lib/apt/lists/* \
+    && chown -R ubuntu:ubuntu /var/log/nginx /var/lib/nginx
 
 # OVMS_BINARY_URL is read from ovms/versions.env at build time (single pin, no
 # drift). The tarball unpacks to ovms/{bin,lib}; /opt keeps PATH below stable.

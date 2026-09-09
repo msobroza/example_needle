@@ -40,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   contract, `make loadtest-models` (`RAG_LOADTEST_TARGET=rerank|embeddings`) and
   the `fastapi-reranker` / `fastapi-embedder` Domino roles, to compare FastAPI
   and OpenVINO Model Server serving of the same models.
+- `rag_load_test`: `RAG_OVMS_PREFIX_PROXY=1` runs nginx in front of OVMS inside the
+  Domino app to strip `DOMINO_RUN_HOST_PATH` (OVMS has no base-path option).
 - `needle_core` domain package:
   - `DocumentExtension` enum with format detection (`from_path`, `from_string`).
   - `Document`, `DocumentVersion`, `DocumentPage` aggregate.

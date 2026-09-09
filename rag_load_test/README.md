@@ -286,7 +286,7 @@ topologies, so the Locust numbers stay comparable.
 | Topology | App | `RAG_ROLE` | Environment variables | Image |
 | --- | --- | --- | --- | --- |
 | `monolith` | one app: workflow + embedder + reranker | `monolith` (default) | `OPENAI_API_KEY`, `RAG_ES_URL` (+ `RAG_ES_API_KEY`) | `rag` |
-| `split-reranker` | **A** OVMS reranker | `ovms-reranker` | `RAG_OVMS_MODELS_DIR` when the Dataset is not at `/mnt/data/ovms-models` | `ovms` |
+| `split-reranker` | **A** OVMS reranker | `ovms-reranker` | `RAG_OVMS_MODELS_DIR` when the Dataset is not at `/mnt/data/ovms-models`; `RAG_OVMS_PREFIX_PROXY=1` if the prefix reaches OVMS | `ovms` |
 | | **B** workflow + embedder | `workflow` | `RAG_OVMS_RERANK_URL=<URL of A>`, `OPENAI_API_KEY`, `RAG_ES_URL` | `rag` |
 | `split-all` | **A** OVMS reranker | `ovms-reranker` | as above | `ovms` |
 | | **C** OVMS embedder | `ovms-embedder` | as above | `ovms` |
@@ -336,9 +336,25 @@ refreshes it on `401` and sends it as `Authorization: Bearer` on every OVMS
 call. Set `RAG_OVMS_AUTH=<token>` to use a fixed token instead.
 
 **Proxy prefix (`DOMINO_RUN_HOST_PATH`).** Domino serves an app under a path
-prefix, exposed to the process as `DOMINO_RUN_HOST_PATH` and stripped by the
-proxy, so routes stay at `/` and the FastAPI app uses it only as `root_path`.
-Callers outside prefix every route with the App URL (`https://<domino-host><DOMINO_RUN_HOST_PATH>/query`);
+prefix (`/apps/<app-id>/` in 6.2), exposed to the process as `DOMINO_RUN_HOST_PATH`.
+The FastAPI apps handle the prefix either way (`root_path`). OVMS cannot: its
+routes are fixed at `/v3/...` and it has no base-path option, so the prefix must
+be stripped before the request reaches it. Check once, from a Workspace:
+
+```bash
+curl -i -H "Authorization: Bearer $(curl -s http://localhost:8899/access-token)" \
+  https://<domino-host>/apps/<ovms-app-id>/v3/models/bge-reranker-base
+```
+
+`200`: Domino's proxy strips the prefix, nothing to do. `404`: the prefix reaches
+OVMS; set `RAG_OVMS_PREFIX_PROXY=1` on the OVMS apps. `app.sh` then starts OVMS on
+`127.0.0.1:9000` and nginx (in the `ovms` image) on `0.0.0.0:8888` with
+`location <prefix>/ { proxy_pass http://127.0.0.1:9000/; }`, which drops the prefix
+and forwards over keep-alive HTTP/1.1. OVMS itself is unchanged (same binary,
+config and threads); the cost is one loopback hop, well under a millisecond, plus
+a little CPU on the same pod. Because it applies to the OVMS apps only, note it in
+the comparison and keep it identical across the OVMS runs. Callers outside prefix
+every route with the App URL (`https://<domino-host><DOMINO_RUN_HOST_PATH>/query`);
 `RAG_OVMS_RERANK_URL` / `RAG_OVMS_EMBEDDINGS_URL` are the OVMS App URLs without a trailing slash.
 
 **Tracing and agent deployment.** Agent deployments use the same hosting as
@@ -375,6 +391,7 @@ use an API key instead: `export DOMINO_API_KEY=<Account settings → API Key>` (
 | `503 reranker_unavailable` / `embedder_unavailable` | OVMS app not ready (Dataset missing, wrong `RAG_OVMS_*_URL`, token rejected); check its logs and `GET <OVMS App URL>/v2/health/ready` |
 | `503 vector_store_unavailable` / `/readyz` not ready | `RAG_ES_URL` unreachable or wrong credentials, or `make ingest` never ran against that cluster |
 | `app.sh[ovms-*]: OVMS config not found` | Dataset not mounted at `/mnt/data/ovms-models`; set `RAG_OVMS_MODELS_DIR` |
+| `404` from an OVMS app on `/v3/...` | Domino forwards the path prefix; set `RAG_OVMS_PREFIX_PROXY=1` on that app (see Proxy prefix) |
 
 ## Development
 
