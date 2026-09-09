@@ -178,8 +178,8 @@ servers with the `rag` environment (no OVMS binary needed); the workflow app's
 `X-RAG-Topology` and `X-Request-ID` are set on every response (an incoming
 `X-Request-ID` is propagated). Errors: dependency failure → `503`
 `{"error":"<component>_unavailable","detail","target"}`, upstream timeout →
-`504` `{"error":"<component>_timeout",...}`, validation → `422`. `root_path`
-follows `DOMINO_RUN_HOST_PATH` so `/docs` works behind Domino's proxy.
+`504` `{"error":"<component>_timeout",...}`, validation → `422`. Routes live at
+`/` with no prefix handling; Domino's proxy strips the app path prefix.
 `rag-serve --host 0.0.0.0 --port 8888` are the defaults (host and port are
 flags, not settings).
 
@@ -336,26 +336,26 @@ refreshes it on `401` and sends it as `Authorization: Bearer` on every OVMS
 call. Set `RAG_OVMS_AUTH=<token>` to use a fixed token instead.
 
 **Proxy prefix (`DOMINO_RUN_HOST_PATH`).** Domino serves an app under a path
-prefix (`/apps/<app-id>/` in 6.2), exposed to the process as `DOMINO_RUN_HOST_PATH`.
-The FastAPI apps handle the prefix either way (`root_path`). OVMS cannot: its
-routes are fixed at `/v3/...` and it has no base-path option, so the prefix must
-be stripped before the request reaches it. Check once, from a Workspace:
+prefix (`/apps/<app-id>/` in 6.2) and strips it before the request reaches the
+process, which is why Flask and Dash apps "work out of the box" in Domino's own
+examples. Every server here (the FastAPI apps and OVMS) therefore serves its routes
+at `/` with no prefix handling. Check it once, from a Workspace:
 
 ```bash
 curl -i -H "Authorization: Bearer $(curl -s http://localhost:8899/access-token)" \
   https://<domino-host>/apps/<ovms-app-id>/v3/models/bge-reranker-base
 ```
 
-`200`: Domino's proxy strips the prefix, nothing to do. `404`: the prefix reaches
-OVMS; set `RAG_OVMS_PREFIX_PROXY=1` on the OVMS apps. `app.sh` then starts OVMS on
+`200`: as expected, nothing to do. `404`: the prefix reaches the process. For the
+OVMS apps set `RAG_OVMS_PREFIX_PROXY=1`: `app.sh` then starts OVMS on
 `127.0.0.1:9000` and nginx (in the `ovms` image) on `0.0.0.0:8888` with
 `location <prefix>/ { proxy_pass http://127.0.0.1:9000/; }`, which drops the prefix
 and forwards over keep-alive HTTP/1.1. OVMS itself is unchanged (same binary,
 config and threads); the cost is one loopback hop, well under a millisecond, plus
-a little CPU on the same pod. Because it applies to the OVMS apps only, note it in
-the comparison and keep it identical across the OVMS runs. Callers outside prefix
+a little CPU on the same pod. Note it in the comparison and keep it identical
+across the OVMS runs. The FastAPI apps get no such layer. Callers outside prefix
 every route with the App URL (`https://<domino-host><DOMINO_RUN_HOST_PATH>/query`);
-`RAG_OVMS_RERANK_URL` / `RAG_OVMS_EMBEDDINGS_URL` are the OVMS App URLs without a trailing slash.
+`RAG_OVMS_RERANK_URL` / `RAG_OVMS_EMBEDDINGS_URL` are the App URLs without a trailing slash.
 
 **Tracing and agent deployment.** Agent deployments use the same hosting as
 Apps (same `app.sh`, same `0.0.0.0:8888` rule) plus tracing through
