@@ -351,9 +351,10 @@ curl -i -H "Authorization: Bearer $(curl -s http://localhost:8899/access-token)"
 
 `200`: the prefix is stripped, nothing to do. `404`: the prefix reaches OVMS; set
 `RAG_OVMS_PREFIX_PROXY=1` on the OVMS apps. `app.sh` then starts OVMS on
-`127.0.0.1:9000` and nginx (in the `ovms` image) on `0.0.0.0:8888` with
-`location <prefix>/ { proxy_pass http://127.0.0.1:9000/; }`, which drops the prefix
-and forwards over keep-alive HTTP/1.1. OVMS itself is unchanged (same binary,
+`127.0.0.1:9000` and nginx (in the `ovms` image) on `0.0.0.0:8888`, with the
+settings in `domino/ovms-proxy.conf` (`__PREFIX__` is replaced at start-up):
+`location <prefix>/ { proxy_pass http://ovms/; }` drops the prefix and forwards
+over keep-alive HTTP/1.1. OVMS itself is unchanged (same binary,
 config and threads); the cost is one loopback hop, well under a millisecond, plus
 a little CPU on the same pod. Note it in the comparison and keep it identical
 across the OVMS runs. Callers outside prefix every route with the App URL
