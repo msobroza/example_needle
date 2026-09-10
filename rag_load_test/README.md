@@ -16,6 +16,8 @@ The workflow code is identical everywhere; only the transport behind the
 OVMS), selected by environment variables, and every topology reads the same
 Elasticsearch index. The package never imports `needle` / `needle_core`.
 
+To run it on Domino, follow [Step by step: first test run on Domino](#step-by-step-first-test-run-on-domino).
+
 ## Workflow
 
 ```mermaid
@@ -396,6 +398,143 @@ use an API key instead: `export DOMINO_API_KEY=<Account settings → API Key>` (
 | `503 vector_store_unavailable` / `/readyz` not ready | `RAG_ES_URL` unreachable or wrong credentials, or `make ingest` never ran against that cluster |
 | `app.sh[ovms-*]: OVMS config not found` | Dataset not mounted at `/mnt/data/ovms-models`; set `RAG_OVMS_MODELS_DIR` |
 | `404` from an OVMS app on `/v3/...` | Domino forwards the path prefix; set `RAG_OVMS_PREFIX_PROXY=1` on that app (see Proxy prefix) |
+
+### Step by step: first test run on Domino
+
+Everything below is what changes between this repository and your Domino
+instance. Replace the placeholders once; the code itself does not change.
+
+| Placeholder / value | Where it goes |
+| --- | --- |
+| `<domino-host>` | your Domino URL, e.g. `https://domino.example.com` |
+| `<registry>` | a registry Domino can pull environments from (only for step 1a) |
+| `RAG_ES_URL`, `RAG_ES_API_KEY` | project environment variables, every project |
+| `OPENAI_API_KEY` (and `OPENAI_BASE_URL` for a gateway), or `RAG_LLM_BACKEND=fake` | project environment variables of the monolith and workflow projects |
+| `RAG_ROLE` | project environment variable, one value per project (see step 2) |
+| `RAG_OVMS_RERANK_URL`, `RAG_OVMS_EMBEDDINGS_URL` | workflow project, set after step 5 publishes the model apps |
+| `RAG_OVMS_MODELS_DIR` | OVMS projects, only when the Dataset is not mounted at `/mnt/data/ovms-models` |
+| `RAG_OVMS_PREFIX_PROXY=1` | OVMS projects, only if step 6 returns `404` |
+| hardware tier | the same CPU tier (4+ cores) for every model app; one for the workflow apps |
+
+**1. Environments (once).** Either build and push both images from the
+sub-project directory, then create two Environments from them as custom base images:
+
+```bash
+docker build -f domino/Dockerfile --target rag  -t <registry>/rag-load-test-rag  .
+docker build -f domino/Dockerfile --target ovms -t <registry>/rag-load-test-ovms .
+docker push <registry>/rag-load-test-rag && docker push <registry>/rag-load-test-ovms
+```
+
+or (1b, no registry) create two Environments on the Domino Standard Environment
+and paste the instructions of one `domino/Dockerfile` stage (everything after its
+`FROM`) into each Environment's Dockerfile Instructions. The `rag` build downloads
+the two HF models, so it needs Hub access at build time.
+
+**2. Projects (one per app).** A Domino App inherits its project's environment
+variables and each app needs its own `RAG_ROLE`, so import this git repository into
+one project per app and set, in Project → Settings → Environment variables:
+
+| Project | `RAG_ROLE` | Environment | Other variables |
+| --- | --- | --- | --- |
+| `rag-monolith` | `monolith` | `rag` | `RAG_ES_URL`, `RAG_ES_API_KEY`, `OPENAI_API_KEY` |
+| `rag-ovms-reranker` | `ovms-reranker` | `ovms` | `RAG_OVMS_MODELS_DIR` if needed |
+| `rag-ovms-embedder` | `ovms-embedder` | `ovms` | `RAG_OVMS_MODELS_DIR` if needed |
+| `rag-fastapi-reranker` | `fastapi-reranker` | `rag` | none |
+| `rag-fastapi-embedder` | `fastapi-embedder` | `rag` | none |
+| `rag-workflow` | `workflow` | `rag` | `RAG_ES_URL`, `RAG_ES_API_KEY`, `OPENAI_API_KEY`, `RAG_OVMS_RERANK_URL` (+ `RAG_EMBEDDER_BACKEND=ovms`, `RAG_OVMS_EMBEDDINGS_URL` for split-all), `RAG_TOPOLOGY` |
+
+Skip the rows you do not test. Keep `RAG_DOMINO_TRACING` identical across projects
+(unset, or `true` everywhere).
+
+**3. OVMS models Dataset (once, OVMS projects only).** In `rag-ovms-reranker`
+create a Dataset `ovms-models`, open a Workspace with the `rag` environment and run:
+
+```bash
+cd rag_load_test
+./ovms/export_models.sh /mnt/data/ovms-models      # needs HF Hub access; ~10 min on CPU
+ls /mnt/data/ovms-models                            # config_reranker.json, config_embedder.json, model folders
+```
+
+Mount the same Dataset in `rag-ovms-embedder` (Data → Datasets → mount from another
+project). DFS projects mount it at `/domino/datasets/local/ovms-models`: set
+`RAG_OVMS_MODELS_DIR` there. The FastAPI projects need no Dataset.
+
+**4. Index the corpus (once per Elasticsearch cluster).** From a Workspace in
+`rag-monolith` (`rag` environment, `RAG_ES_URL` set):
+
+```bash
+cd rag_load_test
+make ingest                                         # 200 synthetic documents, local embedder
+curl -s "$RAG_ES_URL/rag_passages/_count"          # {"count":200,...}
+```
+
+Every app reads this one index; the serving embedder must be the one used here
+(`RAG_EMBEDDER_MODEL`, default `BAAI/bge-small-en-v1.5`, both locally and on OVMS).
+
+**5. Publish the apps (Apps → Publish, entry point `rag_load_test/domino/app.sh`).**
+Order matters for the split topologies:
+
+1. model apps first: `rag-ovms-reranker`, `rag-ovms-embedder` (and/or the two
+   FastAPI projects); wait for "Running" and copy each App URL from the Apps view;
+2. put those URLs, without a trailing slash, into `rag-workflow`'s
+   `RAG_OVMS_RERANK_URL` / `RAG_OVMS_EMBEDDINGS_URL`, set `RAG_TOPOLOGY`
+   (`split-reranker`, `split-all`, `split-reranker-fastapi`, ...), then publish it;
+3. publish `rag-monolith`.
+
+Share every model app with the owner of `rag-workflow` (its run token is the
+identity that calls them) and share the monolith and workflow apps with whoever
+runs Locust. "Anyone in Domino" is the simplest setting for a test instance.
+
+**6. Verify before measuring.** From any Workspace:
+
+```bash
+TOKEN=$(curl -s http://localhost:8899/access-token)
+curl -i -H "Authorization: Bearer $TOKEN" <URL of A>/v3/models/bge-reranker-base    # 200
+curl -s -H "Authorization: Bearer $TOKEN" <URL of B>/readyz                          # every check ok
+curl -s -H "Authorization: Bearer $TOKEN" -X POST <URL of B>/query \
+  -H 'Content-Type: application/json' -d '{"question":"How many paid vacation days do employees accrue?"}'
+```
+
+A `404` on the first call means Domino forwards the path prefix to OVMS: set
+`RAG_OVMS_PREFIX_PROXY=1` in both OVMS projects and republish those two apps
+(see "Proxy prefix" above); the FastAPI apps need nothing. `/readyz` lists which
+dependency is missing when it answers `503`.
+
+**7. Load test (Workspace in `rag-monolith`, `rag` environment).** The run token
+expires after about 5 minutes, so export it right before each run:
+
+```bash
+cd rag_load_test
+export RAG_LOADTEST_BEARER_TOKEN=$(curl -s http://localhost:8899/access-token)
+make loadtest RUN_NAME=monolith        HOST=<URL of the monolith app>
+make loadtest RUN_NAME=split-reranker  HOST=<URL of the workflow app>      # RAG_TOPOLOGY=split-reranker
+make loadtest RUN_NAME=split-all       HOST=<URL of the workflow app>      # after switching it to split-all
+make compare                                                               # results/comparison.md
+```
+
+For experiment 2 aim Locust at the model apps themselves:
+
+```bash
+make loadtest-models RUN_NAME=rerank-ovms    HOST=<URL of the OVMS reranker app>    TARGET=rerank
+make loadtest-models RUN_NAME=rerank-fastapi HOST=<URL of the FastAPI reranker app> TARGET=rerank
+rag-compare results/rerank-ovms results/rerank-fastapi --out results/rerank.md
+```
+
+`results/` is git-ignored: download the CSV/HTML files from the Workspace or copy
+them into a Dataset before stopping it.
+
+**8. What to change between runs, and nothing else.**
+
+| Experiment | Change |
+| --- | --- |
+| monolith vs split-reranker vs split-all | which app `HOST` points at; the workflow project's `RAG_TOPOLOGY`, `RAG_EMBEDDER_BACKEND`, `RAG_OVMS_*_URL` |
+| FastAPI vs OVMS behind the workflow | the workflow project's `RAG_OVMS_*_URL` (and a distinct `RAG_TOPOLOGY` label) |
+| FastAPI vs OVMS directly | `HOST` and `RUN_NAME` of `make loadtest-models` |
+| cost of reranking | `RAG_RERANKER_BACKEND=none` on the monolith or workflow project |
+| remove OpenAI latency | `RAG_LLM_BACKEND=fake` on the monolith and workflow projects |
+
+Keep `USERS`, `SPAWN_RATE`, `RUN_TIME`, the hardware tiers, the corpus and
+`RAG_DOMINO_TRACING` identical across the runs you compare.
 
 ## Development
 
